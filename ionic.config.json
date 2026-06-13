@@ -1,0 +1,7 @@
+{
+  "name": "Proyecto-BovWeight-CR-Movil",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue-vite"
+}
