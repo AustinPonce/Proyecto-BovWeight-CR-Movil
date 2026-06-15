@@ -35,6 +35,7 @@
             </div>
 
             <ion-button
+              v-if="puedeEditar"
               expand="block"
               fill="outline"
               color="success"
@@ -108,9 +109,11 @@ import AppHeader from '@/components/AppHeader.vue';
 import BaseCard from '@/components/BaseCard.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import { fincaService, type FincaAPI } from '@/services/fincaService';
+import { useRol } from '@/composables/useRol';
 
 const route = useRoute();
 const router = useIonRouter();
+const { puedeEditar } = useRol();
 const fincaId = computed(() => Number(route.params.id));
 
 const finca = ref<FincaAPI | null>(null);

@@ -1,7 +1,7 @@
 <template>
   <ion-page>
 
-    <AppHeader title="Mis Fincas" :show-back="true" default-href="/dashboard" />
+    <AppHeader :title="isVeterinario ? 'Fincas Asignadas' : 'Mis Fincas'" :show-back="true" default-href="/dashboard" />
 
     <ion-content>
 
@@ -18,13 +18,13 @@
           <div class="icon-circle">
             <ion-icon :icon="businessOutline" class="farm-icon" />
           </div>
-          <h2>Comienza tu viaje</h2>
-          <p>No hay fincas registradas en tu cuenta actualmente.</p>
-          <BaseButton @click="abrirFormCrear">Registrar Finca</BaseButton>
+          <h2>{{ isVeterinario ? 'Sin fincas asignadas' : 'Comienza tu viaje' }}</h2>
+          <p>{{ isVeterinario ? 'Aún no tienes fincas asignadas.' : 'No hay fincas registradas en tu cuenta actualmente.' }}</p>
+          <BaseButton v-if="puedeCrear" @click="abrirFormCrear">Registrar Finca</BaseButton>
         </BaseCard>
 
-        <!-- Formulario inline: crear finca -->
-        <BaseCard v-if="mostrarFormCrear" class="form-card">
+        <!-- Formulario inline: crear finca (solo si puede crear) -->
+        <BaseCard v-if="mostrarFormCrear && puedeCrear" class="form-card">
           <h3 class="form-title">Nueva Finca</h3>
 
           <BaseInput
@@ -75,8 +75,8 @@
 
     </ion-content>
 
-    <!-- FAB para agregar finca -->
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 70px">
+    <!-- FAB solo para Admin y Ganadero -->
+    <ion-fab v-if="puedeCrear" vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 70px">
       <ion-fab-button color="success" @click="abrirFormCrear">
         <ion-icon :icon="addOutline" />
       </ion-fab-button>
@@ -101,8 +101,10 @@ import BaseCard from '@/components/BaseCard.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import { fincaService, type FincaAPI } from '@/services/fincaService';
+import { useRol } from '@/composables/useRol';
 
 const router = useIonRouter();
+const { isVeterinario, puedeCrear } = useRol();
 
 const fincas = ref<FincaAPI[]>([]);
 const cargando = ref(false);

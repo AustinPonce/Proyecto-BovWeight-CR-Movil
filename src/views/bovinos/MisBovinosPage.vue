@@ -20,7 +20,7 @@
           <ion-icon :icon="leafOutline" class="empty-icon" />
           <h2>Sin registros aún</h2>
           <p>No hay ganado registrado en tu inventario.</p>
-          <BaseButton @click="router.push('/bovinos/registrar-manual')">
+          <BaseButton v-if="puedeCrear" @click="router.push('/bovinos/registrar-manual')">
             Agregar Bovino
           </BaseButton>
         </BaseCard>
@@ -62,8 +62,8 @@
 
     </ion-content>
 
-    <!-- FAB para agregar -->
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 70px">
+    <!-- FAB solo para Admin y Ganadero -->
+    <ion-fab v-if="puedeCrear" vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 70px">
       <ion-fab-button color="success" @click="router.push('/bovinos/registrar-manual')">
         <ion-icon :icon="addOutline" />
       </ion-fab-button>
@@ -89,8 +89,10 @@ import BaseCard from '@/components/BaseCard.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import StatCard from '@/components/StatCard.vue';
 import { bovinoService, type AnimalAPI } from '@/services/bovinoService';
+import { useRol } from '@/composables/useRol';
 
 const router = useIonRouter();
+const { puedeCrear } = useRol();
 
 const buscar = ref('');
 const bovinos = ref<AnimalAPI[]>([]);

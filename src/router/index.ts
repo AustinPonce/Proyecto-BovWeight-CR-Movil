@@ -1,127 +1,137 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
+import { ROL_ADMIN, ROL_GANADERO } from '@/composables/useRol';
+
+declare module 'vue-router' {
+  interface RouteMeta {
+    requiresAuth?: boolean;
+    roles?: number[];
+  }
+}
 
 const routes: Array<RouteRecordRaw> = [
-  // Ruta raíz
-  {
-    path: '/',
-    redirect: '/login'
-  },
+  { path: '/', redirect: '/login' },
 
-  // ============= RUTAS DE AUTENTICACIÓN (SIN BOTTOM NAV) =============
+  // ── Autenticación (públicas) ──────────────────────────────────────────
   {
     path: '/login',
     component: () => import('../views/auth/LoginPage.vue'),
     meta: { requiresAuth: false }
   },
-
   {
     path: '/register',
     component: () => import('../views/auth/RegisterPage.vue'),
     meta: { requiresAuth: false }
   },
-
   {
     path: '/forgot-password',
     component: () => import('../views/auth/ForgotPasswordPage.vue'),
     meta: { requiresAuth: false }
   },
 
-  // ============= RUTAS DE LA APP (CON BOTTOM NAV) =============
-  // Dashboard / Inicio
+  // ── Dashboard ─────────────────────────────────────────────────────────
   {
     path: '/dashboard',
     component: () => import('../views/dashboard/DashboardPage.vue'),
     meta: { requiresAuth: true }
   },
 
-  // Bovinos
+  // ── Admin (solo Administrador) ────────────────────────────────────────
+  {
+    path: '/admin',
+    component: () => import('../views/admin/GestionAdminPage.vue'),
+    meta: { requiresAuth: true, roles: [ROL_ADMIN] }
+  },
+
+  // ── Bovinos ───────────────────────────────────────────────────────────
   {
     path: '/bovinos',
     component: () => import('../views/bovinos/MisBovinosPage.vue'),
     meta: { requiresAuth: true }
   },
-
   {
     path: '/bovinos/detalle/:id',
     component: () => import('../views/bovinos/HistorialPesoPage.vue'),
     meta: { requiresAuth: true }
   },
-
   {
+    // Solo Admin y Ganadero pueden registrar (requiere crear animal)
     path: '/bovinos/registrar-foto',
     component: () => import('../views/bovinos/RegistrarFotoPage.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, roles: [ROL_ADMIN, ROL_GANADERO] }
   },
-
   {
     path: '/bovinos/registrar-manual',
     component: () => import('../views/bovinos/RegistrarManualPage.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, roles: [ROL_ADMIN, ROL_GANADERO] }
   },
 
-  // Fincas
+  // ── Fincas ────────────────────────────────────────────────────────────
   {
     path: '/fincas',
     component: () => import('../views/fincas/MisFincasPage.vue'),
     meta: { requiresAuth: true }
   },
-
   {
     path: '/fincas/detalle/:id',
     component: () => import('../views/fincas/DetalleFincaPage.vue'),
     meta: { requiresAuth: true }
   },
 
-  // Notificaciones / Alertas
+  // ── Notificaciones ────────────────────────────────────────────────────
   {
     path: '/notificaciones',
     component: () => import('../views/notificaciones/NotificacionesPage.vue'),
     meta: { requiresAuth: true }
   },
 
-  // Reportes
+  // ── Reportes ──────────────────────────────────────────────────────────
   {
     path: '/reportes',
     component: () => import('../views/reportes/ReportesPage.vue'),
     meta: { requiresAuth: true }
   },
 
-  // Perfil
+  // ── Perfil / Configuración ────────────────────────────────────────────
   {
     path: '/perfil',
     component: () => import('../views/perfil/PerfilPage.vue'),
     meta: { requiresAuth: true }
   },
-
-  {
-    path: '/perfil/editar',
-    component: () => import('../views/perfil/PerfilPage.vue'),
-    meta: { requiresAuth: true }
-  },
-
   {
     path: '/configuracion',
     component: () => import('../views/perfil/ConfiguracionPage.vue'),
     meta: { requiresAuth: true }
-  }
+  },
 ];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes
+  routes,
 });
 
-// Guard para verificar autenticación
-router.beforeEach((to, from, next) => {
-  // TODO: API - Verificar token de autenticación en localStorage
+router.beforeEach((to, _from, next) => {
   const isAuthenticated = !!localStorage.getItem('authToken');
-  
+
   if (to.meta.requiresAuth && !isAuthenticated) {
     next('/login');
-  } else {
-    next();
+    return;
   }
+
+  // Guard de roles: si la ruta tiene roles requeridos, verificar desde localStorage
+  const rolesRequeridos = to.meta.roles;
+  if (rolesRequeridos && isAuthenticated) {
+    const authUserStr = localStorage.getItem('authUser');
+    const authUser = authUserStr ? JSON.parse(authUserStr) : null;
+    const rolId: number | undefined = authUser?.id_tipo_usuario;
+
+    if (rolId !== undefined && !rolesRequeridos.includes(rolId)) {
+      next('/dashboard');
+      return;
+    }
+  }
+
+  next();
 });
 
 export default router;

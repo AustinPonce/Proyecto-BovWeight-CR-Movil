@@ -4,9 +4,9 @@
     <AppHeader title="BovWeight CR" />
 
     <ion-content fullscreen>
-
       <div class="content">
 
+        <!-- Bienvenida -->
         <ion-card class="welcome-card">
           <ion-card-content>
             <div class="welcome-header">
@@ -23,41 +23,67 @@
                 <ion-icon :icon="settingsOutline" />
               </ion-button>
             </div>
+            <!-- Badge de rol -->
+            <div class="rol-badge" :class="rolClass">
+              <ion-icon :icon="rolIcon" />
+              {{ nombreRol }}
+            </div>
           </ion-card-content>
         </ion-card>
 
+        <!-- Estadísticas -->
         <div class="stats-row">
-          <StatCard title="Total Bovinos" :value="totalBovinos" />
-          <StatCard title="Total Fincas" :value="totalFincas" />
+          <StatCard :title="isAdmin ? 'Total Bovinos' : 'Mis Bovinos'" :value="totalBovinos" />
+          <StatCard :title="isAdmin ? 'Total Fincas' : isVeterinario ? 'Fincas Asignadas' : 'Mis Fincas'" :value="totalFincas" />
         </div>
 
+        <!-- Panel Admin (solo Administrador) -->
+        <div v-if="isAdmin" class="admin-banner" @click="router.push('/admin')">
+          <ion-icon :icon="shieldCheckmarkOutline" class="admin-icon" />
+          <div>
+            <p class="admin-label">Acceso exclusivo</p>
+            <h3>Panel Administrativo</h3>
+          </div>
+          <ion-icon :icon="chevronForwardOutline" class="arrow-icon" />
+        </div>
+
+        <!-- Accesos Rápidos -->
         <h2 class="section-title">Accesos Rápidos</h2>
 
         <div class="grid">
+          <!-- Solo Admin y Ganadero pueden registrar -->
           <QuickAccessCard
+            v-if="!isVeterinario"
             title="Registrar por Foto"
             :icon="cameraOutline"
             @click="router.push('/bovinos/registrar-foto')"
           />
           <QuickAccessCard
+            v-if="!isVeterinario"
             title="Registrar Manual"
             :icon="documentTextOutline"
             @click="router.push('/bovinos/registrar-manual')"
           />
+
           <QuickAccessCard
             title="Mis Bovinos"
             :icon="pawOutline"
             @click="router.push('/bovinos')"
           />
           <QuickAccessCard
-            title="Mis Fincas"
+            :title="isVeterinario ? 'Fincas Asignadas' : 'Mis Fincas'"
             :icon="locationOutline"
             @click="router.push('/fincas')"
           />
         </div>
 
-      </div>
+        <!-- Aviso modo lectura (solo Veterinario) -->
+        <div v-if="isVeterinario" class="vet-notice">
+          <ion-icon :icon="eyeOutline" />
+          <p>Modo solo lectura. Puedes registrar pesajes en animales existentes desde su historial.</p>
+        </div>
 
+      </div>
     </ion-content>
 
     <BottomNav />
@@ -68,9 +94,11 @@
 import { ref, onMounted } from 'vue';
 import { IonPage, IonContent, IonCard, IonCardContent, IonButton, IonIcon, useIonRouter } from '@ionic/vue';
 import {
-  personOutline, settingsOutline, cameraOutline,
-  documentTextOutline, pawOutline, locationOutline
+  personOutline, settingsOutline, cameraOutline, documentTextOutline,
+  pawOutline, locationOutline, shieldCheckmarkOutline, chevronForwardOutline,
+  eyeOutline, medkitOutline, leafOutline
 } from 'ionicons/icons';
+import { computed } from 'vue';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNav from '@/components/BottomNav.vue';
@@ -79,22 +107,34 @@ import StatCard from '@/components/StatCard.vue';
 import { useAuthStore } from '@/stores/authStore';
 import { bovinoService } from '@/services/bovinoService';
 import { fincaService } from '@/services/fincaService';
+import { useRol } from '@/composables/useRol';
 
 const router = useIonRouter();
 const authStore = useAuthStore();
+const { isAdmin, isVeterinario, nombreRol } = useRol();
 
 const userName = ref('...');
 const totalBovinos = ref('0');
 const totalFincas = ref('0');
 
+const rolClass = computed(() => ({
+  'rol-admin': isAdmin.value,
+  'rol-vet': isVeterinario.value,
+  'rol-ganadero': !isAdmin.value && !isVeterinario.value,
+}));
+
+const rolIcon = computed(() =>
+  isAdmin.value ? shieldCheckmarkOutline
+  : isVeterinario.value ? medkitOutline
+  : leafOutline
+);
+
 onMounted(async () => {
-  // Cargar usuario si no está en store
   if (!authStore.usuario) {
     await authStore.cargarUsuario();
   }
   userName.value = authStore.usuario?.nombre || 'Usuario';
 
-  // Cargar estadísticas en paralelo
   try {
     const [bovRes, fincaRes] = await Promise.all([
       bovinoService.getAnimales(),
@@ -102,69 +142,102 @@ onMounted(async () => {
     ]);
     totalBovinos.value = String(bovRes.meta?.total ?? bovRes.data.length);
     totalFincas.value = String(fincaRes.meta?.total ?? fincaRes.data.length);
-  } catch {
-    // No bloquear el dashboard si falla
-  }
+  } catch { /* no bloquear dashboard */ }
 });
 </script>
 
 <style scoped>
-.background {
-  position: fixed;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  opacity: .10;
-}
 .content {
-  position: relative;
-  z-index: 10;
   padding: 16px;
+  padding-bottom: 80px;
 }
-.welcome-card {
-  border-radius: 18px;
-}
+
+.welcome-card { border-radius: 18px; }
+
 .welcome-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 12px;
 }
-.user-info {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
+
+.user-info { display: flex; gap: 12px; align-items: center; }
+
 .avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: #d1fae5;
-  display: flex;
-  justify-content: center;
+  width: 48px; height: 48px; border-radius: 50%;
+  background: #d1fae5; display: flex;
+  justify-content: center; align-items: center;
+  font-size: 24px; color: #006d37;
+}
+
+.subtitle { color: #6b7280; margin: 0; font-size: 13px; }
+
+.rol-badge {
+  display: inline-flex;
   align-items: center;
-  font-size: 24px;
-  color: #006d37;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
 }
-.subtitle {
-  color: #6b7280;
-  margin: 0;
-  font-size: 13px;
-}
+
+.rol-admin { background: #dcfce7; color: #166534; }
+.rol-ganadero { background: #dbeafe; color: #1e40af; }
+.rol-vet { background: #fef9c3; color: #854d0e; }
+
 .stats-row {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   margin-top: 16px;
 }
+
+/* Banner Admin */
+.admin-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #006d37;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-top: 16px;
+  cursor: pointer;
+  color: #ffffff;
+}
+
+.admin-icon { font-size: 32px; color: #86efac; flex-shrink: 0; }
+.admin-label { margin: 0; font-size: 11px; color: #d1fae5; }
+.admin-banner h3 { margin: 2px 0 0; font-size: 16px; font-weight: 600; color: #ffffff; }
+.arrow-icon { margin-left: auto; font-size: 20px; color: #86efac; }
+
 .section-title {
   margin: 24px 0 16px;
   color: #374151;
   font-size: 18px;
   font-weight: 600;
 }
+
 .grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
+
+/* Aviso modo lectura */
+.vet-notice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #fefce8;
+  border: 1px solid #fde047;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 16px;
+  color: #854d0e;
+  font-size: 13px;
+}
+
+.vet-notice ion-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.vet-notice p { margin: 0; line-height: 1.4; }
 </style>
