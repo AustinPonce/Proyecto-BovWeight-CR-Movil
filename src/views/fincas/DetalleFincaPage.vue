@@ -34,17 +34,16 @@
               </div>
             </div>
 
-            <ion-button
-              v-if="puedeEditar"
-              expand="block"
-              fill="outline"
-              color="success"
-              class="mt"
-              @click="abrirFormEditar"
-            >
-              <ion-icon slot="start" :icon="createOutline" />
-              Editar Finca
-            </ion-button>
+            <div v-if="puedeEditar" class="accion-btns">
+              <ion-button expand="block" fill="outline" color="success" @click="abrirFormEditar">
+                <ion-icon slot="start" :icon="createOutline" />
+                Editar Finca
+              </ion-button>
+              <ion-button expand="block" fill="outline" color="danger" @click="confirmarEliminarFinca">
+                <ion-icon slot="start" :icon="trashOutline" />
+                Eliminar Finca
+              </ion-button>
+            </div>
           </BaseCard>
 
           <!-- Formulario de edición inline -->
@@ -101,9 +100,10 @@
 import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import {
-  IonPage, IonContent, IonIcon, IonButton, IonSpinner, useIonRouter
+  IonPage, IonContent, IonIcon, IonButton, IonSpinner,
+  useIonRouter, alertController
 } from '@ionic/vue';
-import { businessOutline, pawOutline, createOutline } from 'ionicons/icons';
+import { businessOutline, pawOutline, createOutline, trashOutline } from 'ionicons/icons';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BaseCard from '@/components/BaseCard.vue';
@@ -135,6 +135,33 @@ const abrirFormEditar = () => {
 
 const cerrarFormEditar = () => {
   mostrarFormEditar.value = false;
+};
+
+const confirmarEliminarFinca = async () => {
+  const alert = await alertController.create({
+    header: 'Eliminar Finca',
+    message: `¿Eliminar la finca "${finca.value?.nombre}"? Esta acción no se puede deshacer.`,
+    buttons: [
+      { text: 'Cancelar', role: 'cancel' },
+      {
+        text: 'Eliminar',
+        role: 'destructive',
+        handler: async () => {
+          try {
+            await fincaService.eliminarFinca(fincaId.value);
+            router.navigate('/fincas', 'back');
+          } catch (e: any) {
+            const msg = e.response?.data?.message || 'Error al eliminar la finca';
+            const err = await alertController.create({
+              header: 'Error', message: msg, buttons: ['OK']
+            });
+            await err.present();
+          }
+        }
+      }
+    ]
+  });
+  await alert.present();
 };
 
 const guardarEdicion = async () => {
@@ -209,6 +236,8 @@ onMounted(async () => {
 .stat-icon { font-size: 22px; color: #16a34a; }
 .stat-value { font-size: 22px; font-weight: bold; color: #006d37; }
 .stat-label { font-size: 11px; color: #6b7280; }
+
+.accion-btns { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
 
 .form-card { border: 2px dashed #86efac; }
 .form-title { font-size: 16px; font-weight: 600; color: #374151; margin-bottom: 12px; }

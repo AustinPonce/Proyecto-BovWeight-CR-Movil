@@ -23,9 +23,12 @@
     "@ionic/vue-router": "^8.0.0",
     "axios": "^1.17.0",
     "ionicons": "^7.0.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "pinia": "^3.0.4",
     "vue": "^3.3.0",
-    "vue-router": "^4.2.0"
+    "vue-router": "^4.2.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.4.0",

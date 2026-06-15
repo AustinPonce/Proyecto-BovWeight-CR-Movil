@@ -15,6 +15,14 @@
           <p>Cargando bovinos...</p>
         </div>
 
+        <!-- Error de carga -->
+        <BaseCard v-else-if="errorCarga" class="empty-card">
+          <ion-icon :icon="alertCircleOutline" class="empty-icon" style="color: #ef4444;" />
+          <h2>Error al cargar</h2>
+          <p>{{ errorCarga }}</p>
+          <BaseButton @click="cargarBovinos">Reintentar</BaseButton>
+        </BaseCard>
+
         <!-- Sin bovinos -->
         <BaseCard v-else-if="bovinos.length === 0" class="empty-card">
           <ion-icon :icon="leafOutline" class="empty-icon" />
@@ -80,7 +88,7 @@ import {
   IonLabel, IonAvatar, IonBadge, IonSpinner,
   IonFab, IonFabButton, useIonRouter
 } from '@ionic/vue';
-import { leafOutline, pawOutline, addOutline } from 'ionicons/icons';
+import { leafOutline, pawOutline, addOutline, alertCircleOutline } from 'ionicons/icons';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNav from '@/components/BottomNav.vue';
@@ -97,6 +105,7 @@ const { puedeCrear } = useRol();
 const buscar = ref('');
 const bovinos = ref<AnimalAPI[]>([]);
 const cargando = ref(false);
+const errorCarga = ref('');
 
 const bovinosFiltrados = computed(() => {
   const q = buscar.value.toLowerCase();
@@ -114,16 +123,23 @@ const totalOtros = computed(() =>
   bovinos.value.filter(b => b.estado?.nombre !== 'Activo').length
 );
 
-onMounted(async () => {
+const cargarBovinos = async () => {
   cargando.value = true;
+  errorCarga.value = '';
   try {
     const res = await bovinoService.getAnimales();
-    bovinos.value = res.data;
-  } catch {
+    // Maneja tanto { data: [...] } como respuesta directa [...]
+    bovinos.value = Array.isArray(res) ? res : (res.data ?? []);
+  } catch (e: any) {
+    errorCarga.value = e.response?.data?.message || 'No se pudieron cargar los bovinos. Verifica tu conexión.';
     bovinos.value = [];
   } finally {
     cargando.value = false;
   }
+};
+
+onMounted(async () => {
+  await cargarBovinos();
 });
 </script>
 
