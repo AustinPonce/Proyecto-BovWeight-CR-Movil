@@ -1,7 +1,7 @@
 <template>
   <ion-page>
 
-    <AppHeader title="Mis Fincas" />
+    <AppHeader title="Mis Fincas" :show-back="true" default-href="/dashboard" />
 
     <ion-content>
 
@@ -88,11 +88,10 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import {
   IonPage, IonContent, IonIcon, IonList, IonItem,
   IonLabel, IonAvatar, IonBadge, IonSpinner,
-  IonFab, IonFabButton, IonButton
+  IonFab, IonFabButton, IonButton, useIonRouter
 } from '@ionic/vue';
 import { businessOutline, addOutline } from 'ionicons/icons';
 
@@ -103,7 +102,7 @@ import BaseButton from '@/components/BaseButton.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import { fincaService, type FincaAPI } from '@/services/fincaService';
 
-const router = useRouter();
+const router = useIonRouter();
 
 const fincas = ref<FincaAPI[]>([]);
 const cargando = ref(false);

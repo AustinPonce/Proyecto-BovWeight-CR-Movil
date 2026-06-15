@@ -1,7 +1,7 @@
 <template>
   <ion-page>
 
-    <AppHeader title="Perfil" />
+    <AppHeader title="Perfil" :show-back="true" default-href="/dashboard" />
 
     <ion-content fullscreen>
 
@@ -64,10 +64,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import {
   IonPage, IonContent, IonCard, IonCardContent,
-  IonIcon, IonList, IonItem, IonLabel
+  IonIcon, IonList, IonItem, IonLabel, useIonRouter
 } from '@ionic/vue';
 import {
   personCircleOutline, pawOutline, businessOutline,
@@ -80,7 +79,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { bovinoService } from '@/services/bovinoService';
 import { fincaService } from '@/services/fincaService';
 
-const router = useRouter();
+const router = useIonRouter();
 const authStore = useAuthStore();
 
 const usuario = reactive({
@@ -94,7 +93,7 @@ const totalFincas = ref('0');
 
 const cerrarSesion = async () => {
   await authStore.logout();
-  router.replace('/login');
+  router.navigate('/login', 'root');
 };
 
 onMounted(async () => {

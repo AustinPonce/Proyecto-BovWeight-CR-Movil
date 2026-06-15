@@ -1,60 +1,21 @@
 <template>
-  <div class="bottom-nav-wrapper">
-    <ion-tab-bar slot="bottom" class="custom-tab-bar">
-
-      <ion-tab-button
-        tab="dashboard"
-        @click="router.push('/dashboard')"
-        class="tab-button"
-        :class="{ active: isActive('/dashboard') }"
-      >
-        <ion-icon :icon="homeOutline" />
-        <ion-label>Inicio</ion-label>
-      </ion-tab-button>
-
-      <ion-tab-button
-        tab="notificaciones"
-        @click="router.push('/notificaciones')"
-        class="tab-button"
-        :class="{ active: isActive('/notificaciones') }"
-      >
-        <ion-icon :icon="notificationsOutline" />
-        <ion-label>Alertas</ion-label>
-      </ion-tab-button>
-
-      <ion-tab-button
-        tab="reportes"
-        @click="router.push('/reportes')"
-        class="tab-button"
-        :class="{ active: isActive('/reportes') }"
-      >
-        <ion-icon :icon="barChartOutline" />
-        <ion-label>Informes</ion-label>
-      </ion-tab-button>
-
-      <ion-tab-button
-        tab="perfil"
-        @click="router.push('/perfil')"
-        class="tab-button"
-        :class="{ active: isActive('/perfil') }"
-      >
-        <ion-icon :icon="personOutline" />
-        <ion-label>Perfil</ion-label>
-      </ion-tab-button>
-
-    </ion-tab-bar>
+  <div class="bottom-nav">
+    <button
+      v-for="item in items"
+      :key="item.path"
+      class="nav-btn"
+      :class="{ active: isActive(item.path) }"
+      @click="navegar(item.path)"
+    >
+      <ion-icon :icon="item.icon" />
+      <span class="nav-label">{{ item.label }}</span>
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useRouter, useRoute } from 'vue-router';
-import {
-  IonTabBar,
-  IonTabButton,
-  IonIcon,
-  IonLabel
-} from '@ionic/vue';
-
+import { useIonRouter, IonIcon } from '@ionic/vue';
+import { useRoute } from 'vue-router';
 import {
   homeOutline,
   notificationsOutline,
@@ -62,67 +23,66 @@ import {
   personOutline
 } from 'ionicons/icons';
 
-const router = useRouter();
+const ionRouter = useIonRouter();
 const route = useRoute();
 
-const isActive = (path: string) => {
-  return route.path === path || route.path.startsWith(path + '/');
+const items = [
+  { path: '/dashboard',      icon: homeOutline,          label: 'Inicio' },
+  { path: '/notificaciones', icon: notificationsOutline, label: 'Alertas' },
+  { path: '/reportes',       icon: barChartOutline,      label: 'Informes' },
+  { path: '/perfil',         icon: personOutline,        label: 'Perfil' },
+];
+
+const isActive = (path: string) =>
+  route.path === path || route.path.startsWith(path + '/');
+
+const navegar = (path: string) => {
+  ionRouter.push(path);
 };
 </script>
 
 <style scoped>
-.bottom-nav-wrapper {
+.bottom-nav {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   z-index: 100;
-}
-
-.custom-tab-bar {
-  --background: #ffffff;
-  --border-color: #e5e7eb;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 60px;
+  background: #ffffff;
   border-top: 1px solid #e5e7eb;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-  height: 60px;
-  --padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
-.tab-button {
-  --color: #9ca3af;
-  --color-selected: #16a34a;
-  --padding-top: 8px;
-  --padding-bottom: 8px;
-  --padding-start: 8px;
-  --padding-end: 8px;
-  font-size: 12px;
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 0;
+  color: #9ca3af;
+  transition: color 0.15s;
 }
 
-.tab-button ion-icon {
+.nav-btn ion-icon {
   font-size: 24px;
-  margin-bottom: 4px;
 }
 
-.tab-button ion-label {
-  display: block;
+.nav-label {
+  font-size: 11px;
   font-weight: 500;
 }
 
-/* Estado activo */
-.tab-button.active {
-  --color: #16a34a;
-  color: #16a34a;
-}
-
-.tab-button.active ion-icon {
-  color: #16a34a;
-}
-
-.tab-button[aria-selected="true"] {
-  --color: #16a34a;
-}
-
-.tab-button[aria-selected="true"] ion-icon {
+.nav-btn.active {
   color: #16a34a;
 }
 </style>

@@ -1,14 +1,6 @@
 <template>
-  <ion-page>
-    <ion-content fullscreen>
-
-      <div class="background">
-        <div class="overlay"></div>
-        <img
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLHZzUCL65MTgsR8GnutZns0aYdALA_kC4LqZEa0XVDkoRW4ws6UkiB4WMtT2BxwI1K_5iOaGcT8xpyWdnHEK9N2M6bDf7uNdUAE33hqtnNPqvTpBk-temHuiMUiIQtEZNb_lhKKZai4nEFOktu80B8f1TeCxL0sEwLFd6b-Ql7jLUxgOoi8OL7vC2lHV-qvMR8Wopcoq5W50R7z9NYrreOdbNCP9u32a7DmKccP_woZ3afcqagUm6NyqYmhlZKyvuEN-P08DM6MgK"
-          alt="Ganadería"
-        />
-      </div>
+  <ion-page class="login-page">
+    <ion-content fullscreen class="login-content">
 
       <div class="login-container">
         <ion-card class="login-card">
@@ -62,14 +54,13 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
-import { IonPage, IonContent, IonCard, IonCardContent, IonButton, IonIcon } from '@ionic/vue';
+import { IonPage, IonContent, IonCard, IonCardContent, IonButton, IonIcon, useIonRouter } from '@ionic/vue';
 import { leafOutline } from 'ionicons/icons';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import { useAuthStore } from '@/stores/authStore';
 
-const router = useRouter();
+const router = useIonRouter();
 const authStore = useAuthStore();
 
 const formulario = reactive({ cedula: '', contrasena: '' });
@@ -85,7 +76,7 @@ const login = async () => {
   loading.value = true;
   try {
     await authStore.login(formulario.cedula, formulario.contrasena);
-    router.push('/dashboard');
+    router.navigate('/dashboard', 'root');
   } catch (err: any) {
     error.value =
       err.response?.data?.errors?.cedula?.[0] ||
@@ -98,40 +89,31 @@ const login = async () => {
 </script>
 
 <style scoped>
-.background {
-  position: fixed;
-  inset: 0;
+/* El overlay oscuro de .login-page está definido globalmente en App.vue */
+.login-content {
+  --background: transparent;
 }
-.background img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, .35);
-  z-index: 1;
-}
+
 .login-container {
-  position: relative;
-  z-index: 10;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
 }
+
 .login-card {
   width: 100%;
   max-width: 420px;
   border-radius: 24px;
-  background: #ffffff !important;
+  --background: #ffffff;
 }
+
 .header {
   text-align: center;
   margin-bottom: 24px;
 }
+
 .logo {
   width: 64px;
   height: 64px;
@@ -142,41 +124,50 @@ const login = async () => {
   justify-content: center;
   margin: 0 auto 16px;
 }
+
 .logo-icon {
   font-size: 32px;
   color: #006d37;
 }
+
 .header h1 {
   color: #006d37;
   font-size: 28px;
   font-weight: bold;
   margin-bottom: 4px;
 }
+
 .header p {
   color: #374151;
 }
+
 .forgot-password {
   text-align: right;
   margin: 8px 0;
 }
+
 .forgot-password ion-button {
   color: #006d37;
 }
+
 .register-link {
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid #e5e7eb;
   text-align: center;
 }
+
 .register-link span {
   color: #374151;
 }
+
 .register-link a {
   margin-left: 6px;
   color: #006d37;
   font-weight: 600;
   text-decoration: none;
 }
+
 .error-message {
   background: #fee2e2;
   border: 1px solid #fca5a5;

@@ -1,7 +1,7 @@
 <template>
   <ion-page>
 
-    <AppHeader title="Registrar por Foto" />
+    <AppHeader title="Registrar por Foto" :show-back="true" default-href="/dashboard" />
 
     <ion-content>
       <div class="container">
@@ -126,6 +126,7 @@
       </div>
     </ion-content>
 
+    <BottomNav />
   </ion-page>
 </template>
 
@@ -142,6 +143,7 @@ import {
 import { Camera } from '@capacitor/camera';
 
 import AppHeader from '@/components/AppHeader.vue';
+import BottomNav from '@/components/BottomNav.vue';
 import BaseCard from '@/components/BaseCard.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import { bovinoService, type AnimalAPI } from '@/services/bovinoService';

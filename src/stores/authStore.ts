@@ -59,8 +59,12 @@ export const useAuthStore = defineStore('auth', () => {
       const data = await authService.getUsuario();
       setUsuario(data);
       return data;
-    } catch {
-      clearAuth();
+    } catch (e: any) {
+      // Solo limpiar sesión si el servidor rechaza el token (401)
+      // No limpiar por errores de red o CORS
+      if (e.response?.status === 401) {
+        clearAuth();
+      }
       return null;
     }
   }

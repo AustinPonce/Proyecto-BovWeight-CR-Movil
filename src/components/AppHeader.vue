@@ -3,7 +3,7 @@
     <ion-toolbar color="success">
 
       <ion-buttons slot="start" v-if="showBack">
-        <ion-back-button default-href="/dashboard" />
+        <ion-back-button :default-href="defaultHref" />
       </ion-buttons>
 
       <ion-title>
@@ -38,10 +38,13 @@ defineProps({
     type: String,
     required: true
   },
-
   showBack: {
     type: Boolean,
     default: false
+  },
+  defaultHref: {
+    type: String,
+    default: '/dashboard'
   }
 });
 </script>

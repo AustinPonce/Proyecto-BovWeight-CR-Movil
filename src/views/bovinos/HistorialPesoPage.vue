@@ -1,7 +1,7 @@
 <template>
   <ion-page>
 
-    <AppHeader title="Historial de Peso" />
+    <AppHeader title="Historial de Peso" :show-back="true" default-href="/bovinos" />
 
     <ion-content>
       <div class="container">

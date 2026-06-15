@@ -5,8 +5,6 @@
 
     <ion-content fullscreen>
 
-      <div class="background"></div>
-
       <div class="content">
 
         <ion-card class="welcome-card">
@@ -68,8 +66,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
-import { IonPage, IonContent, IonCard, IonCardContent, IonButton, IonIcon } from '@ionic/vue';
+import { IonPage, IonContent, IonCard, IonCardContent, IonButton, IonIcon, useIonRouter } from '@ionic/vue';
 import {
   personOutline, settingsOutline, cameraOutline,
   documentTextOutline, pawOutline, locationOutline
@@ -83,7 +80,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { bovinoService } from '@/services/bovinoService';
 import { fincaService } from '@/services/fincaService';
 
-const router = useRouter();
+const router = useIonRouter();
 const authStore = useAuthStore();
 
 const userName = ref('...');
@@ -115,7 +112,6 @@ onMounted(async () => {
 .background {
   position: fixed;
   inset: 0;
-  background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCLHZzUCL65MTgsR8GnutZns0aYdALA_kC4LqZEa0XVDkoRW4ws6UkiB4WMtT2BxwI1K_5iOaGcT8xpyWdnHEK9N2M6bDf7uNdUAE33hqtnNPqvTpBk-temHuiMUiIQtEZNb_lhKKZai4nEFOktu80B8f1TeCxL0sEwLFd6b-Ql7jLUxgOoi8OL7vC2lHV-qvMR8Wopcoq5W50R7z9NYrreOdbNCP9u32a7DmKccP_woZ3afcqagUm6NyqYmhlZKyvuEN-P08DM6MgK');
   background-size: cover;
   background-position: center;
   opacity: .10;

@@ -1,9 +1,7 @@
 <template>
   <ion-page>
 
-    <AppHeader
-      title="Configuración"
-    />
+    <AppHeader title="Configuración" :show-back="true" default-href="/perfil" />
 
     <ion-content>
 
@@ -85,15 +83,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import {
-  IonPage,
-  IonContent,
-  IonList,
-  IonItem,
-  IonLabel,
-  IonIcon,
-  IonToggle
+  IonPage, IonContent, IonList, IonItem,
+  IonLabel, IonIcon, IonToggle, useIonRouter
 } from '@ionic/vue';
 
 import {
@@ -106,7 +98,7 @@ import {
 
 import AppHeader from '@/components/AppHeader.vue';
 
-const router = useRouter();
+const router = useIonRouter();
 
 // ============= ESTADO REACTIVO =============
 const configuracion = reactive({

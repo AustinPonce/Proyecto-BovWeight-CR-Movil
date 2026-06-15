@@ -1,9 +1,7 @@
 <template>
   <ion-page>
 
-    <AppHeader
-      title="Reportes"
-    />
+    <AppHeader title="Reportes" :show-back="true" default-href="/dashboard" />
 
     <ion-content>
 
@@ -70,6 +68,7 @@
 
     </ion-content>
 
+    <BottomNav />
   </ion-page>
 </template>
 
@@ -93,6 +92,7 @@ import {
 } from 'ionicons/icons';
 
 import AppHeader from '@/components/AppHeader.vue';
+import BottomNav from '@/components/BottomNav.vue';
 
 // ============= FUNCIONES =============
 const verReporte = async (tipo: 'peso' | 'produccion' | 'historial') => {

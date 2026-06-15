@@ -1,7 +1,7 @@
 <template>
   <ion-page>
 
-    <AppHeader title="Detalle de Finca" />
+    <AppHeader title="Detalle de Finca" :show-back="true" default-href="/fincas" />
 
     <ion-content>
       <div class="container">
@@ -98,9 +98,9 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute } from 'vue-router';
 import {
-  IonPage, IonContent, IonIcon, IonButton, IonSpinner
+  IonPage, IonContent, IonIcon, IonButton, IonSpinner, useIonRouter
 } from '@ionic/vue';
 import { businessOutline, pawOutline, createOutline } from 'ionicons/icons';
 
@@ -110,7 +110,7 @@ import BaseInput from '@/components/BaseInput.vue';
 import { fincaService, type FincaAPI } from '@/services/fincaService';
 
 const route = useRoute();
-const router = useRouter();
+const router = useIonRouter();
 const fincaId = computed(() => Number(route.params.id));
 
 const finca = ref<FincaAPI | null>(null);

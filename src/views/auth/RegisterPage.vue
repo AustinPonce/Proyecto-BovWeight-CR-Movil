@@ -78,8 +78,7 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
-import { useRouter } from 'vue-router';
-import { IonPage, IonContent, IonCard, IonCardContent, IonIcon } from '@ionic/vue';
+import { IonPage, IonContent, IonCard, IonCardContent, IonIcon, useIonRouter } from '@ionic/vue';
 import { personAddOutline } from 'ionicons/icons';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
@@ -87,7 +86,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { authService } from '@/services/authService';
 import { TIPOS_USUARIO } from '@/services/catalogos';
 
-const router = useRouter();
+const router = useIonRouter();
 const authStore = useAuthStore();
 
 const formulario = reactive({
@@ -130,7 +129,7 @@ const registrar = async () => {
     });
     authStore.setToken(data.token);
     authStore.setUsuario(data.usuario);
-    router.push('/dashboard');
+    router.navigate('/dashboard', 'root');
   } catch (err: any) {
     const errors = err.response?.data?.errors;
     if (errors) {

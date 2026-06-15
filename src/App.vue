@@ -1,56 +1,33 @@
 <template>
-  <ion-app>
+  <ion-app :style="appStyle">
     <ion-router-outlet />
-    <!-- BottomNav solo se muestra en rutas autenticadas -->
-    <BottomNav v-if="showBottomNav" />
   </ion-app>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useRoute } from 'vue-router';
-import {
-  IonApp,
-  IonRouterOutlet
-} from '@ionic/vue';
-import BottomNav from '@/components/BottomNav.vue';
+import { IonApp, IonRouterOutlet } from '@ionic/vue';
+import fondoBovinos from '@/assets/images/fondo-vaca.png';
 
-const route = useRoute();
-
-// Mostrar BottomNav solo en rutas autenticadas
-const showBottomNav = computed(() => {
-  const rutasAuthenticadas = [
-    '/dashboard',
-    '/bovinos',
-    '/bovinos/registrar-foto',
-    '/bovinos/registrar-manual',
-    '/bovinos/detalle',
-    '/fincas',
-    '/fincas/detalle',
-    '/notificaciones',
-    '/reportes',
-    '/perfil',
-    '/perfil/editar',
-    '/configuracion'
-  ];
-  
-  return rutasAuthenticadas.some(ruta => route.path.startsWith(ruta));
-});
+const appStyle = {
+  backgroundImage: `url("${fondoBovinos}")`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+};
 </script>
 
 <style>
-/* Asegurar que el router outlet tenga espacio para el bottom nav */
-ion-router-outlet {
-  --padding-bottom: 60px;
+/* ion-page llena siempre el 100% del viewport → overlay consistente */
+ion-page {
+  background: rgba(249, 250, 251, 0.85);
 }
 
-/* Fondo blanco para toda la app */
-ion-app {
-  --background: #ffffff;
-  background-color: #ffffff;
+/* Login usa overlay oscuro para destacar el formulario */
+ion-page.login-page {
+  background: rgba(0, 0, 0, 0.45) !important;
 }
 
+/* ion-content transparente para que se vea el fondo de ion-page */
 ion-content {
-  --background: #ffffff;
+  --background: transparent;
 }
 </style>

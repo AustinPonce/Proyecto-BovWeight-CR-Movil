@@ -1,7 +1,7 @@
 <template>
   <ion-page>
 
-    <AppHeader title="Registrar Bovino" />
+    <AppHeader title="Registrar Bovino" :show-back="true" default-href="/bovinos" />
 
     <ion-content>
       <div class="container">
@@ -134,8 +134,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { IonPage, IonContent, IonButton, IonIcon } from '@ionic/vue';
+import { useRoute } from 'vue-router';
+import { IonPage, IonContent, IonButton, IonIcon, useIonRouter } from '@ionic/vue';
 import {
   informationCircleOutline, checkmarkCircleOutline, saveOutline
 } from 'ionicons/icons';
@@ -148,7 +148,7 @@ import { bovinoService } from '@/services/bovinoService';
 import { fincaService, type FincaAPI } from '@/services/fincaService';
 import { pesajeService } from '@/services/pesajeService';
 
-const router = useRouter();
+const router = useIonRouter();
 const route = useRoute();
 
 // Si viene con ?arete=XXX solo añade pesaje sin crear animal

@@ -1,7 +1,7 @@
 <template>
   <ion-page>
 
-    <AppHeader title="Notificaciones" />
+    <AppHeader title="Notificaciones" :show-back="true" default-href="/dashboard" />
 
     <ion-content>
       <div class="container">

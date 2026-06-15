@@ -1,2 +1,42 @@
-/* For information on how to create your own theme, please refer to:
-http://ionicframework.com/docs/theming/ */
+/* Ionic CSS Variables - BovWeight CR */
+
+/* Forzar fondo blanco en todos los componentes Ionic,
+   evita que el modo oscuro del sistema afecte la app */
+ion-item {
+  --background: #ffffff;
+  --background-activated: #f0fdf4;
+  --color: #111827;
+  --border-color: #f3f4f6;
+}
+
+ion-list {
+  --background: transparent;
+  background: transparent;
+  --border-color: transparent;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+ion-card {
+  --background: #ffffff;
+  --color: #111827;
+}
+
+ion-card-content {
+  --color: #111827;
+  color: #111827;
+}
+
+ion-label {
+  --color: #111827;
+}
+
+ion-label h2 {
+  color: #111827 !important;
+}
+
+ion-label p {
+  color: #6b7280 !important;
+}
+
+/* background de ion-page se controla desde App.vue */

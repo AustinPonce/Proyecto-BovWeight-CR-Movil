@@ -1,9 +1,7 @@
 <template>
   <ion-page>
 
-    <AppHeader
-      title="Recuperar Contraseña"
-    />
+    <AppHeader title="Recuperar Contraseña" :show-back="true" default-href="/login" />
 
     <ion-content>
 
@@ -48,19 +46,14 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-
-import {
-  IonPage,
-  IonContent
-} from '@ionic/vue';
+import { IonPage, IonContent, useIonRouter } from '@ionic/vue';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BaseCard from '@/components/BaseCard.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 
-const router = useRouter();
+const router = useIonRouter();
 
 // ============= ESTADO REACTIVO =============
 const correo = ref('');

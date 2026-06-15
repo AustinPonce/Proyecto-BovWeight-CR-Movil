@@ -1,7 +1,7 @@
 <template>
   <ion-page>
 
-    <AppHeader title="Mis Bovinos" />
+    <AppHeader title="Mis Bovinos" :show-back="true" default-href="/dashboard" />
 
     <ion-content>
 
@@ -75,11 +75,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
 import {
   IonPage, IonContent, IonIcon, IonList, IonItem,
   IonLabel, IonAvatar, IonBadge, IonSpinner,
-  IonFab, IonFabButton
+  IonFab, IonFabButton, useIonRouter
 } from '@ionic/vue';
 import { leafOutline, pawOutline, addOutline } from 'ionicons/icons';
 
@@ -91,7 +90,7 @@ import BaseButton from '@/components/BaseButton.vue';
 import StatCard from '@/components/StatCard.vue';
 import { bovinoService, type AnimalAPI } from '@/services/bovinoService';
 
-const router = useRouter();
+const router = useIonRouter();
 
 const buscar = ref('');
 const bovinos = ref<AnimalAPI[]>([]);
