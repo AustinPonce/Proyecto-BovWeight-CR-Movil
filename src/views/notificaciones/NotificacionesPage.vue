@@ -4,28 +4,20 @@
     <AppHeader title="Notificaciones" />
 
     <ion-content>
-
       <div class="container">
 
-        <!-- Mostrar mensaje vacío si no hay notificaciones -->
-        <BaseCard v-if="notificaciones.length === 0">
-
-          <ion-icon
-            :icon="notificationsOffOutline"
-            class="notification-icon"
-          />
-
-          <h2>No tienes notificaciones</h2>
-
-          <p>
-            Te avisaremos cuando haya novedades importantes.
-          </p>
-
+        <!-- Sin notificaciones -->
+        <BaseCard v-if="notificaciones.length === 0" class="empty-card">
+          <div class="icon-circle">
+            <ion-icon :icon="notificationsOffOutline" class="notification-icon" />
+          </div>
+          <h2>Sin notificaciones</h2>
+          <p>Te avisaremos cuando haya novedades importantes.</p>
         </BaseCard>
 
-        <!-- Listado de notificaciones -->
+        <!-- Listado -->
         <ion-list v-else>
-          <ion-item 
+          <ion-item
             v-for="notificacion in notificaciones"
             :key="notificacion.id"
             button
@@ -40,31 +32,24 @@
         </ion-list>
 
       </div>
-
     </ion-content>
 
+    <BottomNav />
   </ion-page>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-
 import {
-  IonPage,
-  IonContent,
-  IonIcon,
-  IonList,
-  IonItem,
-  IonLabel,
-  IonBadge
+  IonPage, IonContent, IonIcon,
+  IonList, IonItem, IonLabel, IonBadge
 } from '@ionic/vue';
-
 import { notificationsOffOutline } from 'ionicons/icons';
 
 import AppHeader from '@/components/AppHeader.vue';
+import BottomNav from '@/components/BottomNav.vue';
 import BaseCard from '@/components/BaseCard.vue';
 
-// ============= ESTADO REACTIVO =============
 interface Notificacion {
   id: string;
   titulo: string;
@@ -75,37 +60,44 @@ interface Notificacion {
 }
 
 const notificaciones = ref<Notificacion[]>([]);
-const loading = ref(false);
 
-// ============= FUNCIONES =============
-const formatearFecha = (fecha: string) => {
-  // TODO: Implementar formateo de fecha según locale
-  return new Date(fecha).toLocaleDateString();
-};
+const formatearFecha = (fecha: string) =>
+  new Date(fecha).toLocaleDateString('es-CR');
 
-// ============= CICLO DE VIDA =============
 onMounted(async () => {
-  // TODO: API - Endpoint: GET /api/notificaciones
-  // Obtener: lista de notificaciones del usuario
-  // Reemplazar los valores en ref(notificaciones)
-  // Campos esperados: id, titulo, mensaje, tipo, fecha, leida
-  console.log('📡 [PENDING API] GET /api/notificaciones - Cargar notificaciones');
+  // Sin endpoint de notificaciones en el API actual — lista vacía por ahora
 });
 </script>
 
 <style scoped>
 .container {
   padding: 16px;
+}
+
+.empty-card {
   text-align: center;
+  margin-top: 24px;
+}
+
+.icon-circle {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
 }
 
 .notification-icon {
-  font-size: 72px;
+  font-size: 48px;
   color: #9ca3af;
 }
 
 .fecha {
   font-size: 12px;
   color: #9ca3af;
+  margin-top: 4px;
 }
 </style>

@@ -2,88 +2,74 @@
   <ion-page>
     <ion-content fullscreen>
 
-      <div class="background">
-        <div class="overlay"></div>
-
-        <img
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLHZzUCL65MTgsR8GnutZns0aYdALA_kC4LqZEa0XVDkoRW4ws6UkiB4WMtT2BxwI1K_5iOaGcT8xpyWdnHEK9N2M6bDf7uNdUAE33hqtnNPqvTpBk-temHuiMUiIQtEZNb_lhKKZai4nEFOktu80B8f1TeCxL0sEwLFd6b-Ql7jLUxgOoi8OL7vC2lHV-qvMR8Wopcoq5W50R7z9NYrreOdbNCP9u32a7DmKccP_woZ3afcqagUm6NyqYmhlZKyvuEN-P08DM6MgK"
-          alt="Ganadería"
-        />
-      </div>
-
       <div class="register-container">
-
         <ion-card class="register-card">
-
           <ion-card-content>
 
             <div class="header">
-
               <div class="logo">
-                <ion-icon
-                  :icon="personAddOutline"
-                  class="logo-icon"
-                />
+                <ion-icon :icon="personAddOutline" class="logo-icon" />
               </div>
-
               <h1>Crear Cuenta</h1>
-
-              <p>
-                Únete a la gestión ganadera inteligente
-              </p>
-
+              <p>Únete a la gestión ganadera inteligente</p>
             </div>
 
             <BaseInput
+              v-model="formulario.cedula"
+              label="Cédula *"
+              placeholder="Ej: 123456789"
+            />
+
+            <BaseInput
               v-model="formulario.nombre"
-              label="Nombre completo"
+              label="Nombre completo *"
               placeholder="Ingrese su nombre"
             />
 
             <BaseInput
               v-model="formulario.correo"
-              label="Correo electrónico"
+              label="Correo electrónico *"
               placeholder="ejemplo@correo.com"
               type="email"
             />
 
+            <div class="field-group">
+              <label class="field-label">Tipo de usuario *</label>
+              <select v-model="formulario.id_tipo_usuario" class="native-select">
+                <option :value="0" disabled>Seleccione un rol</option>
+                <option v-for="t in TIPOS_USUARIO" :key="t.id" :value="t.id">
+                  {{ t.nombre }}
+                </option>
+              </select>
+            </div>
+
             <BaseInput
-              v-model="formulario.password"
-              label="Contraseña"
-              placeholder="••••••••"
+              v-model="formulario.contrasena"
+              label="Contraseña *"
+              placeholder="Mínimo 8 caracteres"
               type="password"
             />
 
             <BaseInput
-              v-model="formulario.confirmarPassword"
-              label="Confirmar contraseña"
-              placeholder="••••••••"
+              v-model="formulario.contrasena_confirmation"
+              label="Confirmar contraseña *"
+              placeholder="Repite la contraseña"
               type="password"
             />
 
-            <BaseButton 
-              @click="registrar"
-              :disabled="loading"
-            >
-              {{ loading ? 'Registrando...' : 'Registrarse' }}
+            <div v-if="error" class="error-message">{{ error }}</div>
+
+            <BaseButton @click="registrar" :disabled="loading">
+              {{ loading ? 'Registrando...' : 'Crear Cuenta' }}
             </BaseButton>
 
             <div class="login-link">
-
-              <span>
-                ¿Ya tienes una cuenta?
-              </span>
-
-              <router-link to="/login">
-                Iniciar sesión
-              </router-link>
-
+              <span>¿Ya tienes una cuenta?</span>
+              <router-link to="/login">Iniciar sesión</router-link>
             </div>
 
           </ion-card-content>
-
         </ion-card>
-
       </div>
 
     </ion-content>
@@ -93,69 +79,66 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
 import { useRouter } from 'vue-router';
-
-import {
-  IonPage,
-  IonContent,
-  IonCard,
-  IonCardContent,
-  IonIcon
-} from '@ionic/vue';
-
-import {
-  personAddOutline
-} from 'ionicons/icons';
-
+import { IonPage, IonContent, IonCard, IonCardContent, IonIcon } from '@ionic/vue';
+import { personAddOutline } from 'ionicons/icons';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
+import { useAuthStore } from '@/stores/authStore';
+import { authService } from '@/services/authService';
+import { TIPOS_USUARIO } from '@/services/catalogos';
 
 const router = useRouter();
+const authStore = useAuthStore();
 
-// ============= ESTADO REACTIVO =============
 const formulario = reactive({
+  cedula: '',
   nombre: '',
   correo: '',
-  password: '',
-  confirmarPassword: ''
+  id_tipo_usuario: 0,
+  contrasena: '',
+  contrasena_confirmation: '',
 });
 
 const loading = ref(false);
+const error = ref('');
 
-// ============= FUNCIONES =============
 const registrar = async () => {
-  // Validaciones básicas
-  if (!formulario.nombre || !formulario.correo || !formulario.password) {
-    console.error('Por favor completa todos los campos');
+  error.value = '';
+  if (!formulario.cedula || !formulario.nombre || !formulario.correo ||
+      !formulario.contrasena || !formulario.id_tipo_usuario) {
+    error.value = 'Por favor completa todos los campos obligatorios';
     return;
   }
-
-  if (formulario.password !== formulario.confirmarPassword) {
-    console.error('Las contraseñas no coinciden');
+  if (formulario.contrasena !== formulario.contrasena_confirmation) {
+    error.value = 'Las contraseñas no coinciden';
+    return;
+  }
+  if (formulario.contrasena.length < 8) {
+    error.value = 'La contraseña debe tener al menos 8 caracteres';
     return;
   }
 
   loading.value = true;
   try {
-    // TODO: API - Endpoint: POST /api/auth/register
-    // Enviar: nombre, correo, password
-    // Respuesta: token de autenticación
-    // Guardar token en localStorage y redirigir a /dashboard
-    console.log('📡 [PENDING API] POST /api/auth/register - Registrar nuevo usuario');
-    console.log('Datos a enviar:', {
+    const data = await authService.registrar({
+      cedula: formulario.cedula,
       nombre: formulario.nombre,
       correo: formulario.correo,
-      password: '***'
+      contrasena: formulario.contrasena,
+      contrasena_confirmation: formulario.contrasena_confirmation,
+      id_tipo_usuario: formulario.id_tipo_usuario,
     });
-    
-    // Después de registro exitoso:
-    // localStorage.setItem('authToken', response.token);
-    // router.push('/dashboard');
-    
-    // Mientras la API no esté lista, simulamos el registro (solo para desarrollo)
-    setTimeout(() => {
-      localStorage.setItem('authToken', 'demo-token-' + Date.now());
-      router.push('/dashboard');
-    }, 500);
+    authStore.setToken(data.token);
+    authStore.setUsuario(data.usuario);
+    router.push('/dashboard');
+  } catch (err: any) {
+    const errors = err.response?.data?.errors;
+    if (errors) {
+      const primer = Object.values(errors)[0] as string[];
+      error.value = primer[0] || 'Error al registrar';
+    } else {
+      error.value = err.response?.data?.message || 'Error al crear la cuenta';
+    }
   } finally {
     loading.value = false;
   }
@@ -163,94 +146,93 @@ const registrar = async () => {
 </script>
 
 <style scoped>
-.background {
-  position: fixed;
-  inset: 0;
-  background-color: #ffffff;
-}
-
-.background img {
-  display: none;
-}
-
-.overlay {
-  position: absolute;
-  inset: 0;
-  background: transparent;
-  z-index: 1;
-}
-
 .register-container {
-  position: relative;
-  z-index: 10;
-
   min-height: 100vh;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   padding: 20px;
-  background-color: #ffffff;
+  background-color: #f9fafb;
 }
-
 .register-card {
   width: 100%;
   max-width: 420px;
-
   border-radius: 24px;
   background: #ffffff !important;
 }
-
 .header {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
-
 .logo {
   width: 64px;
   height: 64px;
-
   border-radius: 50%;
-
   background: #d1fae5;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
-  margin: 0 auto 16px;
+  margin: 0 auto 12px;
 }
-
 .logo-icon {
   font-size: 32px;
   color: #006d37;
 }
-
 .header h1 {
-  font-size: 30px;
+  font-size: 26px;
   font-weight: bold;
   color: #006d37;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
-
 .header p {
   color: #374151;
+  font-size: 14px;
 }
-
+.field-group {
+  margin: 12px 0;
+}
+.field-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+}
+.native-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 15px;
+  color: #111827;
+  background: #fff;
+  appearance: auto;
+}
+.native-select:focus {
+  outline: none;
+  border-color: #006d37;
+}
 .login-link {
-  margin-top: 24px;
+  margin-top: 20px;
   text-align: center;
 }
-
 .login-link span {
   color: #374151;
 }
-
 .login-link a {
   margin-left: 6px;
   color: #006d37;
   font-weight: 600;
   text-decoration: none;
+}
+.error-message {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 10px 0;
+  color: #991b1b;
+  font-size: 14px;
+  text-align: center;
 }
 </style>

@@ -22,6 +22,7 @@
         :value="modelValue"
         :placeholder="placeholder"
         :type="type"
+        :disabled="disabled"
         @ionInput="$emit('update:modelValue', $event.target.value)"
       />
     </ion-item>
@@ -46,6 +47,10 @@ defineProps({
   type: {
     type: String as PropType<TextFieldTypes>,
     default: 'text'
+  },
+  disabled: {
+    type: Boolean,
+    default: false
   }
 });
 

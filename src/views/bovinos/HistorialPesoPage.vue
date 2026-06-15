@@ -1,153 +1,226 @@
 <template>
   <ion-page>
 
-    <AppHeader
-      title="Historial de Peso"
-    />
+    <AppHeader title="Historial de Peso" />
 
     <ion-content>
-
       <div class="container">
 
-        <BaseCard>
+        <!-- Carga inicial -->
+        <div v-if="cargando" class="loading-box">
+          <ion-spinner name="crescent" color="success" />
+          <p>Cargando datos...</p>
+        </div>
 
-          <h2>{{ bovino.nombre }} (#{{ bovino.id }})</h2>
+        <template v-else>
 
-          <p>Peso Actual</p>
+          <!-- Tarjeta del animal -->
+          <BaseCard>
+            <h2>{{ animal?.nombre || 'Sin nombre' }} <span class="arete">#{{ bovinoId }}</span></h2>
+            <p class="subtitulo">{{ animal?.raza?.nombre }} · {{ animal?.sexo?.nombre }} · {{ animal?.finca?.nombre }}</p>
 
-          <h1 class="peso">
-            {{ bovinoActual?.peso }} kg
-          </h1>
+            <p class="label-peso">Último peso registrado</p>
+            <h1 class="peso-actual">
+              {{ ultimoPeso ? `${ultimoPeso.toFixed(1)} kg` : '-- kg' }}
+            </h1>
 
-          <ion-button 
-            color="success" 
-            expand="block"
-            @click="agregarPeso"
-          >
-            + Registrar Nuevo Peso
-          </ion-button>
+            <ion-button color="success" expand="block" @click="abrirFormularioPeso">
+              <ion-icon slot="start" :icon="addCircleOutline" />
+              Registrar Nuevo Peso
+            </ion-button>
+          </BaseCard>
 
-        </BaseCard>
+          <!-- Modal inline para nuevo pesaje -->
+          <BaseCard v-if="mostrarFormPeso" class="mt form-peso">
+            <h3>Medidas del Animal</h3>
+            <p class="hint">La app calcula el peso con la fórmula: (torax² × largo) / 10840</p>
 
-        <h3 class="mt">Historial</h3>
+            <BaseInput
+              v-model="formPeso.largo_cuerpo"
+              label="Largo del cuerpo (cm)"
+              type="number"
+              placeholder="Ej: 165"
+            />
+            <BaseInput
+              v-model="formPeso.altura"
+              label="Altura (cm)"
+              type="number"
+              placeholder="Ej: 145"
+            />
+            <BaseInput
+              v-model="formPeso.perimetro_toracico"
+              label="Perímetro torácico (cm)"
+              type="number"
+              placeholder="Ej: 210"
+            />
 
-        <ion-list>
+            <div v-if="errorPeso" class="error-msg">{{ errorPeso }}</div>
 
-          <ion-item 
-            v-for="registro in historialPeso"
-            :key="registro.id"
-          >
-            <ion-label>
-              <h2>{{ formatearFecha(registro.fecha) }}</h2>
-              <p>{{ registro.peso }} kg</p>
-            </ion-label>
-            <ion-badge slot="end" color="primary">
-              {{ calcularDiferencia(registro.peso) }}
-            </ion-badge>
-          </ion-item>
+            <div class="btn-row">
+              <ion-button fill="outline" color="medium" @click="mostrarFormPeso = false">
+                Cancelar
+              </ion-button>
+              <ion-button color="success" @click="guardarPeso" :disabled="guardandoPeso">
+                {{ guardandoPeso ? 'Guardando...' : 'Guardar' }}
+              </ion-button>
+            </div>
+          </BaseCard>
 
-        </ion-list>
+          <!-- Historial -->
+          <h3 class="mt">Historial de Pesajes</h3>
+
+          <BaseCard v-if="historial.length === 0" class="empty-hist">
+            <p>No hay registros de peso aún.</p>
+          </BaseCard>
+
+          <ion-list v-else>
+            <ion-item v-for="(registro, i) in historial" :key="registro.id">
+              <ion-label>
+                <h2>{{ formatFecha(registro.fecha) }}</h2>
+                <p>{{ registro.peso.toFixed(1) }} kg
+                  <span v-if="registro.imagen_url">· 📷 Con foto</span>
+                </p>
+              </ion-label>
+              <ion-badge slot="end" :color="colorDiff(registro.peso, i)">
+                {{ textosDiff(registro.peso, i) }}
+              </ion-badge>
+            </ion-item>
+          </ion-list>
+
+        </template>
 
       </div>
-
     </ion-content>
 
   </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import {
-  IonPage,
-  IonContent,
-  IonList,
-  IonItem,
-  IonLabel,
-  IonButton,
-  IonBadge
+  IonPage, IonContent, IonList, IonItem,
+  IonLabel, IonButton, IonBadge, IonSpinner, IonIcon
 } from '@ionic/vue';
+import { addCircleOutline } from 'ionicons/icons';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BaseCard from '@/components/BaseCard.vue';
+import BaseInput from '@/components/BaseInput.vue';
+import { bovinoService, type AnimalAPI } from '@/services/bovinoService';
+import { pesajeService, type PesajeAPI } from '@/services/pesajeService';
 
 const route = useRoute();
 const bovinoId = computed(() => route.params.id as string);
 
-// ============= ESTADO REACTIVO =============
-interface Bovino {
-  id: string;
-  nombre: string;
-  rebano: string;
-  peso: number;
-}
+const animal = ref<AnimalAPI | null>(null);
+const historial = ref<PesajeAPI[]>([]);
+const cargando = ref(false);
+const ultimoPeso = computed(() =>
+  historial.value.length > 0 ? historial.value[0].peso : null
+);
 
-interface RegistroPeso {
-  id: string;
-  peso: number;
-  fecha: string;
-}
+// Formulario inline
+const mostrarFormPeso = ref(false);
+const guardandoPeso = ref(false);
+const errorPeso = ref('');
+const formPeso = ref({ largo_cuerpo: '', altura: '', perimetro_toracico: '' });
 
-const bovino = ref<Bovino>({
-  id: '',
-  nombre: '',
-  rebano: '',
-  peso: 0
-});
-
-const historialPeso = ref<RegistroPeso[]>([]);
-
-// ============= PROPIEDADES COMPUTADAS =============
-const bovinoActual = computed(() => {
-  if (historialPeso.value.length === 0) return null;
-  return historialPeso.value[0]; // El primero es el más reciente
-});
-
-// ============= FUNCIONES =============
-const formatearFecha = (fecha: string) => {
-  return new Date(fecha).toLocaleDateString();
+const abrirFormularioPeso = () => {
+  mostrarFormPeso.value = true;
+  errorPeso.value = '';
+  formPeso.value = { largo_cuerpo: '', altura: '', perimetro_toracico: '' };
 };
 
-const calcularDiferencia = (peso: number) => {
-  if (!bovinoActual.value) return '';
-  const diff = peso - bovinoActual.value.peso;
-  return diff > 0 ? `+${diff}kg` : `${diff}kg`;
+const guardarPeso = async () => {
+  errorPeso.value = '';
+  const largo = parseFloat(formPeso.value.largo_cuerpo);
+  const altura = parseFloat(formPeso.value.altura);
+  const perimetro = parseFloat(formPeso.value.perimetro_toracico);
+
+  if (!largo || !altura || !perimetro) {
+    errorPeso.value = 'Completa todos los campos';
+    return;
+  }
+
+  guardandoPeso.value = true;
+  try {
+    const res = await pesajeService.crearPesajeManual({
+      arete: bovinoId.value,
+      largo_cuerpo: largo,
+      altura,
+      perimetro_toracico: perimetro,
+    });
+    historial.value.unshift(res.data);
+    mostrarFormPeso.value = false;
+  } catch (e: any) {
+    errorPeso.value = e.response?.data?.message || 'Error al guardar peso';
+  } finally {
+    guardandoPeso.value = false;
+  }
 };
 
-const agregarPeso = async () => {
-  // TODO: API - Endpoint: POST /api/bovinos/:id/peso
-  // Crear nuevo registro de peso para el bovino
-  // Recargar historialPeso después
-  console.log(`📡 [PENDING API] POST /api/bovinos/${bovinoId.value}/peso - Registrar nuevo peso`);
+const formatFecha = (f: string) => new Date(f).toLocaleDateString('es-CR');
+
+const textosDiff = (peso: number, i: number) => {
+  if (i === historial.value.length - 1) return 'Inicial';
+  const prev = historial.value[i + 1]?.peso;
+  if (prev === undefined) return '';
+  const d = peso - prev;
+  return d >= 0 ? `+${d.toFixed(1)} kg` : `${d.toFixed(1)} kg`;
 };
 
-// ============= CICLO DE VIDA =============
+const colorDiff = (peso: number, i: number) => {
+  if (i === historial.value.length - 1) return 'medium';
+  const prev = historial.value[i + 1]?.peso;
+  if (prev === undefined) return 'primary';
+  return peso - prev >= 0 ? 'success' : 'danger';
+};
+
 onMounted(async () => {
-  // TODO: API - Endpoint: GET /api/bovinos/:id
-  // Obtener: datos del bovino específico
-  // Reemplazar los valores en ref(bovino)
-  console.log(`📡 [PENDING API] GET /api/bovinos/${bovinoId.value} - Cargar datos del bovino`);
-
-  // TODO: API - Endpoint: GET /api/bovinos/:id/historial-peso
-  // Obtener: historial de pesos del bovino
-  // Reemplazar los valores en ref(historialPeso)
-  // Campos esperados: id, peso, fecha
-  console.log(`📡 [PENDING API] GET /api/bovinos/${bovinoId.value}/historial-peso - Cargar historial de pesos`);
+  cargando.value = true;
+  try {
+    const [animalRes, pesajesRes] = await Promise.all([
+      bovinoService.getAnimal(bovinoId.value),
+      pesajeService.getPesajes({ animal: bovinoId.value }),
+    ]);
+    animal.value = animalRes.data;
+    historial.value = pesajesRes.data;
+  } catch { /* mostrar vacío */ }
+  finally { cargando.value = false; }
 });
 </script>
 
 <style scoped>
-.container {
-  padding: 16px;
+.container { padding: 16px; }
+.loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 0;
+  color: #6b7280;
 }
-
-.mt {
-  margin-top: 16px;
-}
-
-.peso {
+.arete { color: #6b7280; font-size: 16px; font-weight: normal; }
+.subtitulo { color: #6b7280; font-size: 13px; margin-bottom: 12px; }
+.label-peso { color: #6b7280; margin: 0; font-size: 13px; }
+.peso-actual {
   color: #006d37;
   font-size: 42px;
   font-weight: bold;
+  margin: 4px 0 16px;
 }
+.mt { margin-top: 16px; }
+.hint { color: #6b7280; font-size: 12px; margin-bottom: 8px; }
+.btn-row { display: flex; gap: 8px; margin-top: 8px; }
+.btn-row ion-button { flex: 1; }
+.error-msg {
+  color: #991b1b;
+  background: #fee2e2;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  margin: 8px 0;
+}
+.empty-hist { color: #6b7280; text-align: center; padding: 20px; }
+.form-peso { border: 2px dashed #d1fae5; }
 </style>
