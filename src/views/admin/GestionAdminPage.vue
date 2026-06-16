@@ -29,8 +29,41 @@
             <StatCard title="Total Bovinos" :value="totalBovinos" />
           </div>
 
-          <!-- Gestión rápida -->
-          <h3 class="section-title">Gestión</h3>
+          <!-- Gestión de usuarios y catálogos -->
+          <h3 class="section-title">Administración</h3>
+          <ion-list class="menu-list">
+
+            <ion-item button @click="router.push('/admin/usuarios')">
+              <ion-icon slot="start" :icon="peopleOutline" color="success" />
+              <ion-label>
+                <h2>Gestión de Usuarios</h2>
+                <p>Ver, buscar y gestionar cuentas de usuario</p>
+              </ion-label>
+              <ion-icon slot="end" :icon="chevronForwardOutline" color="medium" />
+            </ion-item>
+
+            <ion-item button @click="router.push('/admin/catalogos')">
+              <ion-icon slot="start" :icon="listOutline" color="success" />
+              <ion-label>
+                <h2>Catálogos</h2>
+                <p>Medicamentos, razas y otros catálogos del sistema</p>
+              </ion-label>
+              <ion-icon slot="end" :icon="chevronForwardOutline" color="medium" />
+            </ion-item>
+
+            <ion-item button @click="router.push('/veterinario/asignar')">
+              <ion-icon slot="start" :icon="medkitOutline" color="success" />
+              <ion-label>
+                <h2>Asignar Veterinarios</h2>
+                <p>Asignar veterinarios a fincas del sistema</p>
+              </ion-label>
+              <ion-icon slot="end" :icon="chevronForwardOutline" color="medium" />
+            </ion-item>
+
+          </ion-list>
+
+          <!-- Inventario y reportes -->
+          <h3 class="section-title">Inventario y Reportes</h3>
           <ion-list class="menu-list">
 
             <ion-item button @click="router.push('/fincas')">
@@ -51,12 +84,13 @@
               <ion-badge slot="end" color="success">{{ totalBovinos }}</ion-badge>
             </ion-item>
 
-            <ion-item button @click="router.push('/reportes')">
+            <ion-item button @click="router.push('/admin/reportes')">
               <ion-icon slot="start" :icon="barChartOutline" color="success" />
               <ion-label>
-                <h2>Reportes</h2>
-                <p>Reportes globales de pesajes y producción</p>
+                <h2>Reportes Globales</h2>
+                <p>Exportar reportes PDF/Excel del sistema completo</p>
               </ion-label>
+              <ion-icon slot="end" :icon="chevronForwardOutline" color="medium" />
             </ion-item>
 
           </ion-list>
@@ -87,7 +121,8 @@ import {
 } from '@ionic/vue';
 import {
   shieldCheckmarkOutline, businessOutline, pawOutline,
-  barChartOutline, informationCircleOutline
+  barChartOutline, informationCircleOutline, peopleOutline,
+  listOutline, medkitOutline, chevronForwardOutline
 } from 'ionicons/icons';
 
 import AppHeader from '@/components/AppHeader.vue';
@@ -110,7 +145,6 @@ onMounted(async () => {
     await authStore.cargarUsuario();
   }
 
-  // Redirigir si no es admin
   if (authStore.usuario?.id_tipo_usuario !== ROL_ADMIN) {
     router.navigate('/dashboard', 'root');
     return;
@@ -122,8 +156,8 @@ onMounted(async () => {
       fincaService.getFincas(),
       bovinoService.getAnimales(),
     ]);
-    totalFincas.value = String(fincaRes.meta?.total ?? fincaRes.data.length);
-    totalBovinos.value = String(bovRes.meta?.total ?? bovRes.data.length);
+    totalFincas.value = String(fincaRes.meta?.total ?? fincaRes.data?.length ?? 0);
+    totalBovinos.value = String(bovRes.meta?.total ?? bovRes.data?.length ?? 0);
   } catch { /* mostrar ceros */ }
   finally { cargando.value = false; }
 });

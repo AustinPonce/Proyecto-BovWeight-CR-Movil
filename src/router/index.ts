@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
-import { ROL_ADMIN, ROL_GANADERO } from '@/composables/useRol';
+import { ROL_ADMIN, ROL_GANADERO, ROL_VETERINARIO } from '@/composables/useRol';
 
 declare module 'vue-router' {
   interface RouteMeta {
@@ -36,10 +36,25 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true }
   },
 
-  // ── Admin (solo Administrador) ────────────────────────────────────────
+  // ── Admin ────────────────────────────────────────────────────────────
   {
     path: '/admin',
     component: () => import('../views/admin/GestionAdminPage.vue'),
+    meta: { requiresAuth: true, roles: [ROL_ADMIN] }
+  },
+  {
+    path: '/admin/usuarios',
+    component: () => import('../views/admin/UsuariosAdminPage.vue'),
+    meta: { requiresAuth: true, roles: [ROL_ADMIN] }
+  },
+  {
+    path: '/admin/catalogos',
+    component: () => import('../views/admin/CatalogosAdminPage.vue'),
+    meta: { requiresAuth: true, roles: [ROL_ADMIN] }
+  },
+  {
+    path: '/admin/reportes',
+    component: () => import('../views/reportes/ReportesGlobalPage.vue'),
     meta: { requiresAuth: true, roles: [ROL_ADMIN] }
   },
 
@@ -55,7 +70,6 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true }
   },
   {
-    // Solo Admin y Ganadero pueden registrar (requiere crear animal)
     path: '/bovinos/registrar-foto',
     component: () => import('../views/bovinos/RegistrarFotoPage.vue'),
     meta: { requiresAuth: true, roles: [ROL_ADMIN, ROL_GANADERO] }
@@ -64,6 +78,34 @@ const routes: Array<RouteRecordRaw> = [
     path: '/bovinos/registrar-manual',
     component: () => import('../views/bovinos/RegistrarManualPage.vue'),
     meta: { requiresAuth: true, roles: [ROL_ADMIN, ROL_GANADERO] }
+  },
+
+  // ── Dosis (veterinario) ───────────────────────────────────────────────
+  {
+    path: '/dosis',
+    component: () => import('../views/bovinos/DosisPage.vue'),
+    meta: { requiresAuth: true, roles: [ROL_VETERINARIO] }
+  },
+
+  // ── Comentarios veterinario ───────────────────────────────────────────
+  {
+    path: '/comentarios',
+    component: () => import('../views/bovinos/ComentariosVeterinarioPage.vue'),
+    meta: { requiresAuth: true, roles: [ROL_VETERINARIO, ROL_GANADERO] }
+  },
+
+  // ── Transacciones ─────────────────────────────────────────────────────
+  {
+    path: '/transacciones',
+    component: () => import('../views/bovinos/TransaccionesPage.vue'),
+    meta: { requiresAuth: true, roles: [ROL_GANADERO, ROL_ADMIN] }
+  },
+
+  // ── Veterinario (admin asigna vets a fincas) ──────────────────────────
+  {
+    path: '/veterinario/asignar',
+    component: () => import('../views/veterinario/AsignarVeterinarioPage.vue'),
+    meta: { requiresAuth: true, roles: [ROL_ADMIN] }
   },
 
   // ── Fincas ────────────────────────────────────────────────────────────
@@ -118,7 +160,6 @@ router.beforeEach((to, _from, next) => {
     return;
   }
 
-  // Guard de roles: si la ruta tiene roles requeridos, verificar desde localStorage
   const rolesRequeridos = to.meta.roles;
   if (rolesRequeridos && isAuthenticated) {
     const authUserStr = localStorage.getItem('authUser');

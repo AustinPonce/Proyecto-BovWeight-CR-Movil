@@ -47,41 +47,78 @@
           <ion-icon :icon="chevronForwardOutline" class="arrow-icon" />
         </div>
 
-        <!-- Accesos Rápidos -->
-        <h2 class="section-title">Accesos Rápidos</h2>
+        <!-- Accesos Rápidos para Ganadero y Veterinario -->
+        <template v-if="!isAdmin">
+          <h2 class="section-title">Accesos Rápidos</h2>
 
-        <div class="grid">
-          <!-- Solo Admin y Ganadero pueden registrar -->
-          <QuickAccessCard
-            v-if="!isVeterinario"
-            title="Registrar por Foto"
-            :icon="cameraOutline"
-            @click="router.push('/bovinos/registrar-foto')"
-          />
-          <QuickAccessCard
-            v-if="!isVeterinario"
-            title="Registrar Manual"
-            :icon="documentTextOutline"
-            @click="router.push('/bovinos/registrar-manual')"
-          />
+          <div class="grid">
+            <!-- Solo Ganadero puede registrar -->
+            <QuickAccessCard
+              v-if="!isVeterinario"
+              title="Registrar por Foto"
+              :icon="cameraOutline"
+              @click="router.push('/bovinos/registrar-foto')"
+            />
+            <QuickAccessCard
+              v-if="!isVeterinario"
+              title="Registrar Manual"
+              :icon="documentTextOutline"
+              @click="router.push('/bovinos/registrar-manual')"
+            />
 
-          <QuickAccessCard
-            title="Mis Bovinos"
-            :icon="pawOutline"
-            @click="router.push('/bovinos')"
-          />
-          <QuickAccessCard
-            :title="isVeterinario ? 'Fincas Asignadas' : 'Mis Fincas'"
-            :icon="locationOutline"
-            @click="router.push('/fincas')"
-          />
-        </div>
+            <QuickAccessCard
+              title="Mis Bovinos"
+              :icon="pawOutline"
+              @click="router.push('/bovinos')"
+            />
+            <QuickAccessCard
+              :title="isVeterinario ? 'Fincas Asignadas' : 'Mis Fincas'"
+              :icon="locationOutline"
+              @click="router.push('/fincas')"
+            />
 
-        <!-- Aviso modo lectura (solo Veterinario) -->
-        <div v-if="isVeterinario" class="vet-notice">
-          <ion-icon :icon="eyeOutline" />
-          <p>Modo solo lectura. Puedes registrar pesajes en animales existentes desde su historial.</p>
-        </div>
+            <!-- Veterinario ve calculadora de dosis -->
+            <QuickAccessCard
+              v-if="isVeterinario"
+              title="Calculadora de Dosis"
+              :icon="medkitOutline"
+              @click="router.push('/dosis')"
+            />
+          </div>
+
+          <!-- Aviso modo lectura (solo Veterinario) -->
+          <div v-if="isVeterinario" class="vet-notice">
+            <ion-icon :icon="eyeOutline" />
+            <p>Modo solo lectura. Puedes registrar pesajes en animales existentes desde su historial.</p>
+          </div>
+        </template>
+
+        <!-- Accesos Rápidos para Administrador -->
+        <template v-if="isAdmin">
+          <h2 class="section-title">Gestión del Sistema</h2>
+          <div class="grid">
+            <QuickAccessCard
+              title="Usuarios"
+              :icon="peopleOutline"
+              @click="router.push('/admin/usuarios')"
+            />
+            <QuickAccessCard
+              title="Catálogos"
+              :icon="listOutline"
+              @click="router.push('/admin/catalogos')"
+            />
+            <QuickAccessCard
+              title="Todas las Fincas"
+              :icon="businessOutline"
+              @click="router.push('/fincas')"
+            />
+            <QuickAccessCard
+              title="Reportes Globales"
+              :icon="barChartOutline"
+              @click="router.push('/admin/reportes')"
+            />
+          </div>
+        </template>
 
       </div>
     </ion-content>
@@ -91,14 +128,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { IonPage, IonContent, IonCard, IonCardContent, IonButton, IonIcon, useIonRouter } from '@ionic/vue';
 import {
   personOutline, settingsOutline, cameraOutline, documentTextOutline,
   pawOutline, locationOutline, shieldCheckmarkOutline, chevronForwardOutline,
-  eyeOutline, medkitOutline, leafOutline
+  eyeOutline, medkitOutline, leafOutline,
+  peopleOutline, listOutline, businessOutline, barChartOutline
 } from 'ionicons/icons';
-import { computed } from 'vue';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNav from '@/components/BottomNav.vue';
@@ -140,8 +177,8 @@ onMounted(async () => {
       bovinoService.getAnimales(),
       fincaService.getFincas(),
     ]);
-    totalBovinos.value = String(bovRes.meta?.total ?? bovRes.data.length);
-    totalFincas.value = String(fincaRes.meta?.total ?? fincaRes.data.length);
+    totalBovinos.value = String(bovRes.meta?.total ?? bovRes.data?.length ?? 0);
+    totalFincas.value = String(fincaRes.meta?.total ?? fincaRes.data?.length ?? 0);
   } catch { /* no bloquear dashboard */ }
 });
 </script>

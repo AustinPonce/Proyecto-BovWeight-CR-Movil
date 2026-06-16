@@ -20,6 +20,12 @@ export const authService = {
     return res.data as { mensaje: string; usuario: any; token: string };
   },
 
+  // POST /api/forgot-password  →  { message }
+  async forgotPassword(correo: string) {
+    const res = await api.post('/forgot-password', { email: correo });
+    return res.data as { message: string };
+  },
+
   // POST /api/logout
   async logout() {
     const res = await api.post('/logout', {});

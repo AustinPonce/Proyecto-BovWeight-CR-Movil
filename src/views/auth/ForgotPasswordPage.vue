@@ -4,10 +4,15 @@
     <AppHeader title="Recuperar Contraseña" :show-back="true" default-href="/login" />
 
     <ion-content>
-
       <div class="container">
 
         <BaseCard>
+
+          <div class="icon-row">
+            <div class="icon-circle">
+              <ion-icon :icon="lockClosedOutline" />
+            </div>
+          </div>
 
           <h2>¿Olvidaste tu contraseña?</h2>
 
@@ -22,23 +27,25 @@
             placeholder="ejemplo@correo.com"
           />
 
+          <div v-if="error" class="error-msg">{{ error }}</div>
+
           <div class="button-container">
-            <BaseButton 
+            <BaseButton
               @click="enviarEnlace"
               :disabled="loading"
             >
-              {{ loading ? 'Enviando...' : 'Enviar enlace' }}
+              {{ loading ? 'Enviando...' : 'Enviar enlace de recuperación' }}
             </BaseButton>
           </div>
 
-          <p v-if="mensajeExito" class="mensaje-exito">
-            ✓ {{ mensajeExito }}
-          </p>
+          <div v-if="mensajeExito" class="mensaje-exito">
+            <ion-icon :icon="checkmarkCircleOutline" />
+            <p>{{ mensajeExito }}</p>
+          </div>
 
         </BaseCard>
 
       </div>
-
     </ion-content>
 
   </ion-page>
@@ -46,46 +53,44 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { IonPage, IonContent, useIonRouter } from '@ionic/vue';
+import { IonPage, IonContent, IonIcon, useIonRouter } from '@ionic/vue';
+import { lockClosedOutline, checkmarkCircleOutline } from 'ionicons/icons';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BaseCard from '@/components/BaseCard.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
+import { authService } from '@/services/authService';
 
 const router = useIonRouter();
 
-// ============= ESTADO REACTIVO =============
 const correo = ref('');
 const loading = ref(false);
+const error = ref('');
 const mensajeExito = ref('');
 
-// ============= FUNCIONES =============
 const enviarEnlace = async () => {
-  if (!correo.value) {
-    console.error('Por favor ingresa tu correo');
+  error.value = '';
+  mensajeExito.value = '';
+
+  if (!correo.value.trim()) {
+    error.value = 'Por favor ingresa tu correo electrónico';
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(correo.value)) {
+    error.value = 'Ingresa un correo electrónico válido';
     return;
   }
 
   loading.value = true;
-  mensajeExito.value = '';
-  
   try {
-    // TODO: API - Endpoint: POST /api/auth/forgot-password
-    // Enviar: correo
-    // Respuesta: confirmación de envío de enlace
-    console.log('📡 [PENDING API] POST /api/auth/forgot-password - Enviar enlace de recuperación');
-    console.log('Correo:', correo.value);
-    
-    // Después de envío exitoso:
-    // mensajeExito.value = 'Enlace enviado a tu correo';
-    // setTimeout(() => router.push('/login'), 2000);
-    
-    // Simulación mientras la API no esté lista
-    setTimeout(() => {
-      mensajeExito.value = 'Enlace de recuperación enviado a tu correo';
-      setTimeout(() => router.push('/login'), 2000);
-    }, 1000);
+    await authService.forgotPassword(correo.value.trim());
+    mensajeExito.value = 'Si el correo está registrado, recibirás un enlace en tu bandeja de entrada.';
+    setTimeout(() => router.push('/login'), 3500);
+  } catch (err: any) {
+    error.value = err.response?.data?.message || 'No se pudo enviar el correo. Verifica la dirección e intenta de nuevo.';
   } finally {
     loading.value = false;
   }
@@ -95,22 +100,76 @@ const enviarEnlace = async () => {
 <style scoped>
 .container {
   padding: 16px;
-  background-color: #ffffff;
+}
+
+.icon-row {
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.icon-circle {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #d1fae5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+  color: #006d37;
+}
+
+h2 {
+  text-align: center;
+  color: #111827;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
 }
 
 .description {
-  color: #374151;
+  color: #6b7280;
+  font-size: 14px;
+  text-align: center;
   margin-bottom: 20px;
+  line-height: 1.5;
 }
 
 .button-container {
   margin-top: 20px;
 }
 
+.error-msg {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 12px;
+  color: #991b1b;
+  font-size: 13px;
+}
+
 .mensaje-exito {
-  color: #16a34a;
-  text-align: center;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 14px;
   margin-top: 16px;
+  color: #166534;
+}
+
+.mensaje-exito ion-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.mensaje-exito p {
+  margin: 0;
   font-size: 14px;
+  line-height: 1.5;
 }
 </style>

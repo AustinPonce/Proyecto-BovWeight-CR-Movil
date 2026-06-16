@@ -9,6 +9,18 @@
 
         <BaseInput v-model="buscar" placeholder="Buscar por arete o nombre..." />
 
+        <!-- Botones de exportación -->
+        <div v-if="bovinos.length > 0" class="export-row">
+          <button class="export-btn pdf" @click="exportarPDF" :disabled="exportando !== ''">
+            <ion-icon :icon="documentOutline" />
+            {{ exportando === 'pdf' ? 'Generando...' : 'PDF' }}
+          </button>
+          <button class="export-btn excel" @click="exportarExcel" :disabled="exportando !== ''">
+            <ion-icon :icon="gridOutline" />
+            {{ exportando === 'excel' ? 'Generando...' : 'Excel' }}
+          </button>
+        </div>
+
         <!-- Estado de carga -->
         <div v-if="cargando" class="loading-box">
           <ion-spinner name="crescent" color="success" />
@@ -88,7 +100,13 @@ import {
   IonLabel, IonAvatar, IonBadge, IonSpinner,
   IonFab, IonFabButton, useIonRouter
 } from '@ionic/vue';
-import { leafOutline, pawOutline, addOutline, alertCircleOutline } from 'ionicons/icons';
+import {
+  leafOutline, pawOutline, addOutline, alertCircleOutline,
+  documentOutline, gridOutline
+} from 'ionicons/icons';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNav from '@/components/BottomNav.vue';
@@ -106,6 +124,7 @@ const buscar = ref('');
 const bovinos = ref<AnimalAPI[]>([]);
 const cargando = ref(false);
 const errorCarga = ref('');
+const exportando = ref('');
 
 const bovinosFiltrados = computed(() => {
   const q = buscar.value.toLowerCase();
@@ -123,12 +142,68 @@ const totalOtros = computed(() =>
   bovinos.value.filter(b => b.estado?.nombre !== 'Activo').length
 );
 
+const fechaHoy = () => new Date().toISOString().split('T')[0];
+
+const exportarPDF = async () => {
+  exportando.value = 'pdf';
+  try {
+    const doc = new jsPDF();
+    doc.setFillColor(0, 109, 55);
+    doc.rect(0, 0, 210, 18, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.text('BovWeight CR — Inventario de Bovinos', 14, 12);
+
+    autoTable(doc, {
+      startY: 24,
+      head: [['Arete', 'Nombre', 'Raza', 'Sexo', 'Estado', 'Finca', 'Último Peso (kg)']],
+      body: bovinos.value.map(b => [
+        b.arete,
+        b.nombre || '—',
+        b.raza?.nombre || '—',
+        b.sexo?.nombre || '—',
+        b.estado?.nombre || '—',
+        b.finca?.nombre || '—',
+        b.ultimo_peso ? b.ultimo_peso.peso.toFixed(1) : '—',
+      ]),
+      headStyles: { fillColor: [0, 109, 55] },
+      alternateRowStyles: { fillColor: [240, 253, 244] },
+    });
+
+    doc.save(`bovinos_${fechaHoy()}.pdf`);
+  } finally {
+    exportando.value = '';
+  }
+};
+
+const exportarExcel = async () => {
+  exportando.value = 'excel';
+  try {
+    const filas = bovinos.value.map(b => ({
+      Arete: b.arete,
+      Nombre: b.nombre || '',
+      Raza: b.raza?.nombre || '',
+      Sexo: b.sexo?.nombre || '',
+      Estado: b.estado?.nombre || '',
+      Finca: b.finca?.nombre || '',
+      'Último Peso (kg)': b.ultimo_peso ? b.ultimo_peso.peso.toFixed(1) : '',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(filas);
+    ws['!cols'] = [14, 18, 14, 10, 12, 18, 16].map(w => ({ wch: w }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Bovinos');
+    XLSX.writeFile(wb, `bovinos_${fechaHoy()}.xlsx`);
+  } finally {
+    exportando.value = '';
+  }
+};
+
 const cargarBovinos = async () => {
   cargando.value = true;
   errorCarga.value = '';
   try {
     const res = await bovinoService.getAnimales();
-    // Maneja tanto { data: [...] } como respuesta directa [...]
     bovinos.value = Array.isArray(res) ? res : (res.data ?? []);
   } catch (e: any) {
     errorCarga.value = e.response?.data?.message || 'No se pudieron cargar los bovinos. Verifica tu conexión.';
@@ -146,6 +221,7 @@ onMounted(async () => {
 <style scoped>
 .container {
   padding: 16px;
+  padding-bottom: 100px;
 }
 .loading-box {
   display: flex;
@@ -179,4 +255,28 @@ onMounted(async () => {
   gap: 12px;
   margin-top: 16px;
 }
+
+.export-row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin: 8px 0 4px;
+}
+
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.export-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.export-btn ion-icon { font-size: 16px; }
+.export-btn.pdf { background: #fef2f2; color: #991b1b; }
+.export-btn.excel { background: #f0fdf4; color: #166534; }
 </style>

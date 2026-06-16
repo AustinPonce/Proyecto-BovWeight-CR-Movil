@@ -20,12 +20,23 @@
               placeholder="Ej: 123456789"
             />
 
-            <BaseInput
-              v-model="formulario.contrasena"
-              label="Contraseña"
-              placeholder="••••••••"
-              type="password"
-            />
+            <!-- Contraseña con toggle ojo -->
+            <div class="input-wrapper">
+              <label class="input-label">Contraseña</label>
+              <div class="pass-row">
+                <ion-item lines="none" class="input-item pass-item">
+                  <ion-input
+                    :value="formulario.contrasena"
+                    :type="mostrarContrasena ? 'text' : 'password'"
+                    placeholder="••••••••"
+                    @ionInput="formulario.contrasena = ($event.target as HTMLInputElement).value"
+                  />
+                </ion-item>
+                <button type="button" class="eye-btn" @click="mostrarContrasena = !mostrarContrasena">
+                  <ion-icon :icon="mostrarContrasena ? eyeOffOutline : eyeOutline" />
+                </button>
+              </div>
+            </div>
 
             <div v-if="error" class="error-message">{{ error }}</div>
 
@@ -54,8 +65,8 @@
 
 <script setup lang="ts">
 import { ref, reactive } from 'vue';
-import { IonPage, IonContent, IonCard, IonCardContent, IonButton, IonIcon, useIonRouter } from '@ionic/vue';
-import { leafOutline } from 'ionicons/icons';
+import { IonPage, IonContent, IonCard, IonCardContent, IonButton, IonIcon, IonItem, IonInput, useIonRouter } from '@ionic/vue';
+import { leafOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import { useAuthStore } from '@/stores/authStore';
@@ -66,6 +77,7 @@ const authStore = useAuthStore();
 const formulario = reactive({ cedula: '', contrasena: '' });
 const loading = ref(false);
 const error = ref('');
+const mostrarContrasena = ref(false);
 
 const login = async () => {
   error.value = '';
@@ -89,7 +101,6 @@ const login = async () => {
 </script>
 
 <style scoped>
-/* El overlay oscuro de .login-page está definido globalmente en App.vue */
 .login-content {
   --background: transparent;
 }
@@ -140,6 +151,52 @@ const login = async () => {
 .header p {
   color: #374151;
 }
+
+/* Password field */
+.input-wrapper {
+  margin: 8px 0;
+}
+
+.input-label {
+  font-size: 12px;
+  font-weight: 700;
+  margin-left: 6px;
+  color: #374151;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.pass-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pass-item {
+  --background: #ffffff;
+  --border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  flex: 1;
+  margin-top: 0;
+}
+
+.input-item {
+  margin-top: 6px;
+}
+
+.eye-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.eye-btn:active { color: #006d37; }
 
 .forgot-password {
   text-align: right;

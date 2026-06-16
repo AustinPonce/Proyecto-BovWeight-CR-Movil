@@ -265,10 +265,21 @@ const guardar = async () => {
     );
     resultado.value = { peso: pesajeRes.data.peso, arete: pesajeRes.data.arete };
   } catch (e: any) {
-    const errors = e.response?.data?.errors;
-    error.value = errors
-      ? Object.values(errors).flat().join(' ')
-      : e.response?.data?.message || 'Error al registrar. Verifica los datos e intenta de nuevo.';
+    const status: number = e.response?.status;
+    const msg: string = e.response?.data?.message ?? '';
+    const isNoBovino = status === 422 && (
+      msg.toLowerCase().includes('bovino') ||
+      msg.toLowerCase().includes('detect') ||
+      msg.toLowerCase().includes('animal no encontrado')
+    );
+    if (isNoBovino) {
+      error.value = 'La foto no contiene un bovino detectado. Toma una foto lateral con el cuerpo completo visible e intenta de nuevo.';
+    } else {
+      const errors = e.response?.data?.errors;
+      error.value = errors
+        ? (Object.values(errors) as string[][]).flat().join(' ')
+        : msg || 'Error al registrar. Verifica los datos e intenta de nuevo.';
+    }
   } finally {
     loading.value = false;
   }
