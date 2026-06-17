@@ -1,7 +1,6 @@
 import api from './api';
 
 export interface UsuarioAPI {
-  id: number;
   cedula: string;
   nombre: string;
   correo: string;
@@ -37,8 +36,8 @@ export const adminService = {
     return res.data;
   },
 
-  async toggleActivo(id: number) {
-    const res = await api.patch(`/usuarios/${id}/toggle-activo`);
+  async toggleActivo(cedula: string) {
+    const res = await api.patch(`/usuarios/${cedula}/toggle-activo`);
     return res.data;
   },
 };

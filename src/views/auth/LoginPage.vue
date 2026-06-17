@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref, reactive, onMounted } from 'vue';
 import { IonPage, IonContent, IonCard, IonCardContent, IonButton, IonIcon, IonItem, IonInput, useIonRouter } from '@ionic/vue';
 import { leafOutline, eyeOutline, eyeOffOutline } from 'ionicons/icons';
 import BaseInput from '@/components/BaseInput.vue';
@@ -73,6 +73,12 @@ import { useAuthStore } from '@/stores/authStore';
 
 const router = useIonRouter();
 const authStore = useAuthStore();
+
+// Limpiar sesión anterior al abrir el login para que el cambio de usuario
+// siempre funcione sin necesidad de cerrar sesión explícitamente.
+onMounted(() => {
+  authStore.clearAuth();
+});
 
 const formulario = reactive({ cedula: '', contrasena: '' });
 const loading = ref(false);

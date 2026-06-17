@@ -212,6 +212,7 @@ const exportarExcel = async (tipo: string) => {
   padding: 8px 12px;
   font-size: 12px;
   border-bottom: 1px solid #e5e7eb;
+  color: #1f2937;
 }
 .header-row { background: #f3f4f6; font-weight: 600; color: #374151; }
 .more-hint { text-align: center; font-size: 12px; color: #9ca3af; padding: 6px; margin: 0; }

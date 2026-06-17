@@ -128,8 +128,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { IonPage, IonContent, IonCard, IonCardContent, IonButton, IonIcon, useIonRouter } from '@ionic/vue';
+import { ref, computed } from 'vue';
+import { IonPage, IonContent, IonCard, IonCardContent, IonButton, IonIcon, useIonRouter, onIonViewWillEnter } from '@ionic/vue';
 import {
   personOutline, settingsOutline, cameraOutline, documentTextOutline,
   pawOutline, locationOutline, shieldCheckmarkOutline, chevronForwardOutline,
@@ -166,10 +166,12 @@ const rolIcon = computed(() =>
   : leafOutline
 );
 
-onMounted(async () => {
-  if (!authStore.usuario) {
-    await authStore.cargarUsuario();
-  }
+onIonViewWillEnter(async () => {
+  userName.value = '...';
+  totalBovinos.value = '0';
+  totalFincas.value = '0';
+
+  await authStore.cargarUsuario();
   userName.value = authStore.usuario?.nombre || 'Usuario';
 
   try {

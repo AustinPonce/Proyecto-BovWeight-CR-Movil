@@ -9,9 +9,23 @@ export interface MedicamentoAPI {
 }
 
 export const medicamentoService = {
-  // GET /api/medicamentos
   async getMedicamentos() {
     const res = await api.get('/medicamentos');
     return res.data as { data: MedicamentoAPI[] };
+  },
+
+  async crearMedicamento(datos: Omit<MedicamentoAPI, 'id_medicamento'>) {
+    const res = await api.post('/medicamentos', datos);
+    return res.data as { data: MedicamentoAPI };
+  },
+
+  async actualizarMedicamento(id: number, datos: Omit<MedicamentoAPI, 'id_medicamento'>) {
+    const res = await api.put(`/medicamentos/${id}`, datos);
+    return res.data as { data: MedicamentoAPI };
+  },
+
+  async eliminarMedicamento(id: number) {
+    const res = await api.delete(`/medicamentos/${id}`);
+    return res.data as { mensaje: string };
   },
 };
