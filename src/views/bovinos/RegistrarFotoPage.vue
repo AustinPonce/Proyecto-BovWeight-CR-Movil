@@ -158,7 +158,6 @@ import {
 } from 'ionicons/icons';
 import { Camera } from '@capacitor/camera';
 import type { MediaResult } from '@capacitor/camera';
-import { Filesystem } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 
 import AppHeader from '@/components/AppHeader.vue';
@@ -188,13 +187,6 @@ const formulario = reactive({
   id_estado: 1,
   id_finca: 0,
 });
-
-const base64ToBlob = (base64: string, mimeType = 'image/jpeg'): Blob => {
-  const byteChars = atob(base64);
-  const bytes = new Uint8Array(byteChars.length);
-  for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
-  return new Blob([bytes], { type: mimeType });
-};
 
 const tomarFoto = async (fuente: 'camera' | 'gallery') => {
   error.value = '';
@@ -230,14 +222,13 @@ const tomarFoto = async (fuente: 'camera' | 'gallery') => {
 
     if (!media) return;
 
-    // webPath funciona en <img> en Android; uri es la ruta nativa para leer bytes
-    fotoDataUrl.value = media.webPath ?? '';
+    const webPath = media.webPath;
+    if (!webPath) { error.value = 'No se pudo obtener la imagen.'; return; }
 
-    if (!media.uri) { error.value = 'No se pudo obtener la ruta del archivo.'; return; }
-    const fileRead = await Filesystem.readFile({ path: media.uri });
-    const base64 = typeof fileRead.data === 'string' ? fileRead.data : '';
-    if (!base64) { error.value = 'No se pudo leer la foto. Intenta de nuevo.'; return; }
-    fotoBlob.value = base64ToBlob(base64);
+    fotoDataUrl.value = webPath;
+    // fetch sobre capacitor:// funciona dentro del WebView nativo de Capacitor
+    const response = await fetch(webPath);
+    fotoBlob.value = await response.blob();
   } catch (e: any) {
     if (e?.message?.includes('cancelled') || e?.message?.includes('User cancelled')) return;
     error.value = 'No se pudo acceder a la cámara. Verifica los permisos.';
