@@ -3,6 +3,7 @@ import api from './api';
 export interface RazaAPI {
   id_raza: number;
   raza: string;
+  factor_correccion: number | null;
 }
 
 export const razaService = {
@@ -11,13 +12,13 @@ export const razaService = {
     return res.data as { data: RazaAPI[] };
   },
 
-  async crearRaza(nombre: string) {
-    const res = await api.post('/razas', { raza: nombre });
+  async crearRaza(datos: { raza: string; factor_correccion: number }) {
+    const res = await api.post('/razas', datos);
     return res.data as { data: RazaAPI };
   },
 
-  async actualizarRaza(id: number, nombre: string) {
-    const res = await api.put(`/razas/${id}`, { raza: nombre });
+  async actualizarRaza(id: number, datos: { raza: string; factor_correccion: number }) {
+    const res = await api.put(`/razas/${id}`, datos);
     return res.data as { data: RazaAPI };
   },
 

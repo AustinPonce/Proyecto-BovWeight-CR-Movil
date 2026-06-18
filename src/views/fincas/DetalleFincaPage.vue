@@ -88,6 +88,29 @@
             </ion-button>
           </BaseCard>
 
+          <!-- Veterinarios asignados (solo Admin/Ganadero) -->
+          <BaseCard v-if="!isVeterinario" class="mt">
+            <h3>Veterinarios Asignados</h3>
+
+            <div v-if="cargandoVets" class="loading-box-sm">
+              <ion-spinner name="crescent" color="success" />
+            </div>
+
+            <p v-else-if="veterinarios.length === 0" class="hint">
+              Sin veterinarios asignados a esta finca.
+            </p>
+
+            <ion-list v-else>
+              <ion-item v-for="v in veterinarios" :key="v.cedula">
+                <ion-icon slot="start" :icon="medkitOutline" color="success" />
+                <ion-label>
+                  <h2>{{ v.nombre }}</h2>
+                  <p>Cédula: {{ v.cedula }}</p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </BaseCard>
+
         </template>
 
       </div>
@@ -101,19 +124,20 @@ import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import {
   IonPage, IonContent, IonIcon, IonButton, IonSpinner,
-  useIonRouter, alertController
+  IonList, IonItem, IonLabel, useIonRouter, alertController
 } from '@ionic/vue';
-import { businessOutline, pawOutline, createOutline, trashOutline } from 'ionicons/icons';
+import { businessOutline, pawOutline, createOutline, trashOutline, medkitOutline } from 'ionicons/icons';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BaseCard from '@/components/BaseCard.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import { fincaService, type FincaAPI } from '@/services/fincaService';
+import { veterinarioService } from '@/services/veterinarioService';
 import { useRol } from '@/composables/useRol';
 
 const route = useRoute();
 const router = useIonRouter();
-const { puedeEditar } = useRol();
+const { puedeEditar, isVeterinario } = useRol();
 const fincaId = computed(() => Number(route.params.id));
 
 const finca = ref<FincaAPI | null>(null);
@@ -122,6 +146,9 @@ const mostrarFormEditar = ref(false);
 const guardando = ref(false);
 const errorEditar = ref('');
 const exitoEditar = ref(false);
+
+const veterinarios   = ref<any[]>([]);
+const cargandoVets   = ref(false);
 
 const formEditar = reactive({ nombre: '', ubicacion: '' });
 
@@ -199,6 +226,14 @@ onMounted(async () => {
   } finally {
     cargando.value = false;
   }
+
+  cargandoVets.value = true;
+  try {
+    const vetsRes = await veterinarioService.getVeterinariosAsignados(fincaId.value);
+    veterinarios.value = Array.isArray(vetsRes) ? vetsRes : (vetsRes.data ?? []);
+  } catch { /* sin vets o sin permiso */ } finally {
+    cargandoVets.value = false;
+  }
 });
 </script>
 
@@ -256,4 +291,6 @@ onMounted(async () => {
 }
 
 .hint { color: #6b7280; font-size: 13px; margin-bottom: 12px; }
+
+.loading-box-sm { display: flex; justify-content: center; padding: 16px 0; }
 </style>

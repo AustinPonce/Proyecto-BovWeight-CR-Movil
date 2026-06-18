@@ -19,7 +19,7 @@
 
           <div v-else class="field-group">
             <label class="field-label">Finca *</label>
-            <select v-model="idFinca" class="native-select" @change="cargarVeterinariosAsignados">
+            <select v-model="idFinca" class="native-select">
               <option :value="0" disabled>Seleccione una finca</option>
               <option v-for="f in fincas" :key="f.id" :value="f.id">{{ f.nombre }}</option>
             </select>
@@ -86,9 +86,9 @@
           </div>
         </div>
 
-        <!-- Mensajes -->
-        <div v-if="mensajeOk" class="success-msg">{{ mensajeOk }}</div>
-        <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
+        <!-- Mensajes globales -->
+        <div v-if="mensajeOk" class="success-msg mt">{{ mensajeOk }}</div>
+        <div v-if="errorMsg" class="error-msg mt">{{ errorMsg }}</div>
 
       </div>
     </ion-content>
@@ -98,7 +98,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import { IonPage, IonContent, IonIcon, IonSpinner } from '@ionic/vue';
 import {
   businessOutline, searchOutline, checkmarkCircleOutline, trashOutline
@@ -183,6 +183,15 @@ const desasignar = async (vet: VeterinarioAPI) => {
     errorMsg.value = e.response?.data?.message || 'No se pudo remover el veterinario.';
   }
 };
+
+watch(idFinca, (nuevoId) => {
+  if (nuevoId) {
+    vets.value = [];
+    buscado.value = false;
+    buscar.value = '';
+    cargarVeterinariosAsignados();
+  }
+});
 
 onMounted(async () => {
   cargandoFincas.value = true;

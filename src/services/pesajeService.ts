@@ -4,6 +4,9 @@ export interface PesajeAPI {
   id: number;
   arete: string;
   peso: number;
+  peso_original?: number | null;
+  factor_raza?: number | null;
+  peso_corregido?: number | null;
   fecha: string;
   sincronizado: boolean;
   tipo_pesaje_id: number;
@@ -30,15 +33,22 @@ export const pesajeService = {
   },
 
   // POST /api/pesajes (tipo=foto, multipart)  →  { data: PesajeAPI }
-  async crearPesajeFoto(arete: string, imagenBlob: Blob, filename = 'bovino.jpg') {
+  async crearPesajeFoto(arete: string, imagenBlob: Blob, filename = 'bovino.jpg', tipoAnimal?: string) {
     const formData = new FormData();
     formData.append('arete', arete);
     formData.append('tipo', 'foto');
     formData.append('imagen', imagenBlob, filename);
+    if (tipoAnimal) formData.append('tipo_animal', tipoAnimal);
 
     const res = await api.post('/pesajes', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
+    return res.data as { data: PesajeAPI };
+  },
+
+  // PUT /api/pesajes/{id}  →  corregir peso manualmente
+  async actualizarPesaje(id: number, datos: { peso: number }) {
+    const res = await api.put(`/pesajes/${id}`, datos);
     return res.data as { data: PesajeAPI };
   },
 

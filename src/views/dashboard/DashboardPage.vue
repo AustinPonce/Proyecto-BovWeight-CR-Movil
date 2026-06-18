@@ -47,49 +47,34 @@
           <ion-icon :icon="chevronForwardOutline" class="arrow-icon" />
         </div>
 
-        <!-- Accesos Rápidos para Ganadero y Veterinario -->
-        <template v-if="!isAdmin">
+        <!-- Accesos Rápidos para Ganadero -->
+        <template v-if="!isAdmin && !isVeterinario">
           <h2 class="section-title">Accesos Rápidos</h2>
-
           <div class="grid">
-            <!-- Solo Ganadero puede registrar -->
-            <QuickAccessCard
-              v-if="!isVeterinario"
-              title="Registrar por Foto"
-              :icon="cameraOutline"
-              @click="router.push('/bovinos/registrar-foto')"
-            />
-            <QuickAccessCard
-              v-if="!isVeterinario"
-              title="Registrar Manual"
-              :icon="documentTextOutline"
-              @click="router.push('/bovinos/registrar-manual')"
-            />
-
-            <QuickAccessCard
-              title="Mis Bovinos"
-              :icon="pawOutline"
-              @click="router.push('/bovinos')"
-            />
-            <QuickAccessCard
-              :title="isVeterinario ? 'Fincas Asignadas' : 'Mis Fincas'"
-              :icon="locationOutline"
-              @click="router.push('/fincas')"
-            />
-
-            <!-- Veterinario ve calculadora de dosis -->
-            <QuickAccessCard
-              v-if="isVeterinario"
-              title="Calculadora de Dosis"
-              :icon="medkitOutline"
-              @click="router.push('/dosis')"
-            />
+            <QuickAccessCard title="Mis Fincas" :icon="locationOutline" @click="router.push('/fincas')" />
+            <QuickAccessCard title="Mis Animales" :icon="pawOutline" @click="router.push('/bovinos')" />
+            <QuickAccessCard title="Registrar Pesaje" :icon="cameraOutline" @click="router.push('/bovinos/registrar-pesaje')" />
+            <QuickAccessCard title="Historial de Pesajes" :icon="barChartOutline" @click="router.push('/reportes')" />
+            <QuickAccessCard title="Transacciones" :icon="swapHorizontalOutline" @click="router.push('/transacciones')" />
+            <QuickAccessCard title="Calculadora de Dosis" :icon="medkitOutline" @click="router.push('/dosis')" />
           </div>
+          <div class="aviso-legal">
+            <ion-icon :icon="informationCircleOutline" />
+            <span>Las estimaciones de peso son orientativas. No sustituyen la báscula oficial para transacciones comerciales legales (compra/venta de ganado en kilogramos en pie).</span>
+          </div>
+        </template>
 
-          <!-- Aviso modo lectura (solo Veterinario) -->
-          <div v-if="isVeterinario" class="vet-notice">
-            <ion-icon :icon="eyeOutline" />
-            <p>Modo solo lectura. Puedes registrar pesajes en animales existentes desde su historial.</p>
+        <!-- Accesos Rápidos para Veterinario -->
+        <template v-if="isVeterinario">
+          <h2 class="section-title">Accesos Rápidos</h2>
+          <div class="grid">
+            <QuickAccessCard title="Fincas Asignadas" :icon="businessOutline" @click="router.push('/fincas')" />
+            <QuickAccessCard title="Bovinos Asignados" :icon="pawOutline" @click="router.push('/bovinos')" />
+            <QuickAccessCard title="Calculadora de Dosis" :icon="medkitOutline" @click="router.push('/dosis')" />
+          </div>
+          <div class="aviso-legal">
+            <ion-icon :icon="informationCircleOutline" />
+            <span>Las estimaciones de peso son orientativas. No sustituyen la báscula oficial para transacciones comerciales legales (compra/venta de ganado en kilogramos en pie).</span>
           </div>
         </template>
 
@@ -131,10 +116,11 @@
 import { ref, computed } from 'vue';
 import { IonPage, IonContent, IonCard, IonCardContent, IonButton, IonIcon, useIonRouter, onIonViewWillEnter } from '@ionic/vue';
 import {
-  personOutline, settingsOutline, cameraOutline, documentTextOutline,
+  personOutline, settingsOutline, cameraOutline,
   pawOutline, locationOutline, shieldCheckmarkOutline, chevronForwardOutline,
-  eyeOutline, medkitOutline, leafOutline,
-  peopleOutline, listOutline, businessOutline, barChartOutline
+  medkitOutline, leafOutline,
+  peopleOutline, listOutline, businessOutline, barChartOutline,
+  swapHorizontalOutline, informationCircleOutline
 } from 'ionicons/icons';
 
 import AppHeader from '@/components/AppHeader.vue';
@@ -279,4 +265,19 @@ onIonViewWillEnter(async () => {
 
 .vet-notice ion-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
 .vet-notice p { margin: 0; line-height: 1.4; }
+
+.aviso-legal {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 16px;
+  color: #92400e;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.aviso-legal ion-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
 </style>

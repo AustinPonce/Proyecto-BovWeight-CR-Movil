@@ -28,6 +28,11 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/auth/ForgotPasswordPage.vue'),
     meta: { requiresAuth: false }
   },
+  {
+    path: '/reset-password',
+    component: () => import('../views/auth/ResetPasswordPage.vue'),
+    meta: { requiresAuth: false }
+  },
 
   // ── Dashboard ─────────────────────────────────────────────────────────
   {
@@ -57,6 +62,11 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/reportes/ReportesGlobalPage.vue'),
     meta: { requiresAuth: true, roles: [ROL_ADMIN] }
   },
+  {
+    path: '/admin/auditoria',
+    component: () => import('../views/admin/AuditoriaAdminPage.vue'),
+    meta: { requiresAuth: true, roles: [ROL_ADMIN] }
+  },
 
   // ── Bovinos ───────────────────────────────────────────────────────────
   {
@@ -70,6 +80,11 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/bovinos/registrar-pesaje',
+    component: () => import('../views/bovinos/RegistrarPesajePage.vue'),
+    meta: { requiresAuth: true, roles: [ROL_ADMIN, ROL_GANADERO] }
+  },
+  {
     path: '/bovinos/registrar-foto',
     component: () => import('../views/bovinos/RegistrarFotoPage.vue'),
     meta: { requiresAuth: true, roles: [ROL_ADMIN, ROL_GANADERO] }
@@ -80,11 +95,11 @@ const routes: Array<RouteRecordRaw> = [
     meta: { requiresAuth: true, roles: [ROL_ADMIN, ROL_GANADERO] }
   },
 
-  // ── Dosis (veterinario) ───────────────────────────────────────────────
+  // ── Dosis (ganadero + veterinario + admin) ────────────────────────────
   {
     path: '/dosis',
     component: () => import('../views/bovinos/DosisPage.vue'),
-    meta: { requiresAuth: true, roles: [ROL_VETERINARIO] }
+    meta: { requiresAuth: true, roles: [ROL_GANADERO, ROL_VETERINARIO, ROL_ADMIN] }
   },
 
   // ── Comentarios veterinario ───────────────────────────────────────────
@@ -100,12 +115,17 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/bovinos/TransaccionesPage.vue'),
     meta: { requiresAuth: true, roles: [ROL_GANADERO, ROL_ADMIN] }
   },
+  {
+    path: '/transacciones/nueva',
+    component: () => import('../views/bovinos/NuevaTransaccionPage.vue'),
+    meta: { requiresAuth: true, roles: [ROL_GANADERO, ROL_ADMIN] }
+  },
 
-  // ── Veterinario (admin asigna vets a fincas) ──────────────────────────
+  // ── Veterinario (admin y ganadero asignan vets a fincas) ─────────────
   {
     path: '/veterinario/asignar',
     component: () => import('../views/veterinario/AsignarVeterinarioPage.vue'),
-    meta: { requiresAuth: true, roles: [ROL_ADMIN] }
+    meta: { requiresAuth: true, roles: [ROL_ADMIN, ROL_GANADERO] }
   },
 
   // ── Fincas ────────────────────────────────────────────────────────────
@@ -124,6 +144,11 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/notificaciones',
     component: () => import('../views/notificaciones/NotificacionesPage.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/notificaciones/comentario/:id',
+    component: () => import('../views/notificaciones/DetalleComentarioPage.vue'),
     meta: { requiresAuth: true }
   },
 

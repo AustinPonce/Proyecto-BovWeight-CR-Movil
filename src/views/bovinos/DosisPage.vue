@@ -13,11 +13,19 @@
           </h3>
 
           <!-- Arete -->
-          <BaseInput
-            v-model="form.arete"
-            label="Arete del animal *"
-            placeholder="Ej: CR-12345"
-          />
+          <div v-if="cargandoAnimales" class="loading-row">
+            <ion-spinner name="crescent" color="success" />
+            <span>Cargando animales...</span>
+          </div>
+          <div v-else class="field-group">
+            <label class="field-label">Arete del animal *</label>
+            <select v-model="form.arete" class="native-select">
+              <option value="" disabled>— Seleccioná un animal —</option>
+              <option v-for="a in animales" :key="a.arete" :value="a.arete">
+                {{ a.arete }}{{ a.nombre ? ` — ${a.nombre}` : '' }}
+              </option>
+            </select>
+          </div>
 
           <!-- Medicamento -->
           <div v-if="cargandoMeds" class="loading-row">
@@ -123,9 +131,13 @@ import BaseCard from '@/components/BaseCard.vue';
 import BaseInput from '@/components/BaseInput.vue';
 import BaseButton from '@/components/BaseButton.vue';
 import { medicamentoService, type MedicamentoAPI } from '@/services/medicamentoService';
+import { bovinoService, type AnimalAPI } from '@/services/bovinoService';
 import { useRol } from '@/composables/useRol';
 
 const { isVeterinario } = useRol();
+
+const animales = ref<AnimalAPI[]>([]);
+const cargandoAnimales = ref(false);
 
 const medicamentos = ref<MedicamentoAPI[]>([]);
 const cargandoMeds = ref(false);
@@ -175,6 +187,13 @@ const calcular = async () => {
 };
 
 onMounted(async () => {
+  cargandoAnimales.value = true;
+  try {
+    const res = await bovinoService.getAnimales();
+    animales.value = res.data ?? [];
+  } catch { /* sin animales */ }
+  finally { cargandoAnimales.value = false; }
+
   cargandoMeds.value = true;
   try {
     const res = await medicamentoService.getMedicamentos();

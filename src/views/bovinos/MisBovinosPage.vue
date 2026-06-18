@@ -7,13 +7,26 @@
 
       <div class="container">
 
-        <BaseInput v-model="buscar" placeholder="Buscar por arete o nombre..." />
+        <!-- Búsqueda y filtros -->
+        <div class="search-filter-row">
+          <BaseInput v-model="buscar" placeholder="Buscar por arete o nombre..." />
+          <select v-model="filtroEstado" class="estado-select">
+            <option value="">Todos los estados</option>
+            <option value="Activo">Activo</option>
+            <option value="Vendido">Vendido</option>
+            <option value="Fallecido">Fallecido</option>
+          </select>
+        </div>
 
         <!-- Botones de exportación -->
         <div v-if="bovinos.length > 0" class="export-row">
           <button class="export-btn pdf" @click="exportarPDF" :disabled="exportando !== ''">
             <ion-icon :icon="documentOutline" />
             {{ exportando === 'pdf' ? 'Generando...' : 'PDF' }}
+          </button>
+          <button class="export-btn csv" @click="exportarCSV" :disabled="exportando !== ''">
+            <ion-icon :icon="documentTextOutline" />
+            {{ exportando === 'csv' ? 'Generando...' : 'CSV' }}
           </button>
           <button class="export-btn excel" @click="exportarExcel" :disabled="exportando !== ''">
             <ion-icon :icon="gridOutline" />
@@ -102,7 +115,7 @@ import {
 } from '@ionic/vue';
 import {
   leafOutline, pawOutline, addOutline, alertCircleOutline,
-  documentOutline, gridOutline
+  documentOutline, documentTextOutline, gridOutline
 } from 'ionicons/icons';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -121,18 +134,25 @@ const router = useIonRouter();
 const { puedeCrear } = useRol();
 
 const buscar = ref('');
+const filtroEstado = ref('');
 const bovinos = ref<AnimalAPI[]>([]);
 const cargando = ref(false);
 const errorCarga = ref('');
 const exportando = ref('');
 
 const bovinosFiltrados = computed(() => {
+  let lista = bovinos.value;
   const q = buscar.value.toLowerCase();
-  if (!q) return bovinos.value;
-  return bovinos.value.filter(b =>
-    b.arete.toLowerCase().includes(q) ||
-    (b.nombre ?? '').toLowerCase().includes(q)
-  );
+  if (q) {
+    lista = lista.filter(b =>
+      b.arete.toLowerCase().includes(q) ||
+      (b.nombre ?? '').toLowerCase().includes(q)
+    );
+  }
+  if (filtroEstado.value) {
+    lista = lista.filter(b => b.estado?.nombre === filtroEstado.value);
+  }
+  return lista;
 });
 
 const totalActivos = computed(() =>
@@ -171,6 +191,30 @@ const exportarPDF = async () => {
     });
 
     doc.save(`bovinos_${fechaHoy()}.pdf`);
+  } finally {
+    exportando.value = '';
+  }
+};
+
+const exportarCSV = async () => {
+  exportando.value = 'csv';
+  try {
+    const rows = [
+      ['Arete', 'Nombre', 'Raza', 'Sexo', 'Estado', 'Finca', 'Último Peso (kg)'],
+      ...bovinos.value.map(b => [
+        b.arete, b.nombre || '', b.raza?.nombre || '', b.sexo?.nombre || '',
+        b.estado?.nombre || '', b.finca?.nombre || '',
+        b.ultimo_peso ? b.ultimo_peso.peso.toFixed(1) : '',
+      ]),
+    ];
+    const csv = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bovinos_${fechaHoy()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   } finally {
     exportando.value = '';
   }
@@ -256,6 +300,23 @@ onMounted(async () => {
   margin-top: 16px;
 }
 
+.search-filter-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.estado-select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #111827;
+  background: #fff;
+  margin-bottom: 4px;
+}
+
 .export-row {
   display: flex;
   gap: 8px;
@@ -278,5 +339,6 @@ onMounted(async () => {
 .export-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .export-btn ion-icon { font-size: 16px; }
 .export-btn.pdf { background: #fef2f2; color: #991b1b; }
+.export-btn.csv { background: #eff6ff; color: #1d4ed8; }
 .export-btn.excel { background: #f0fdf4; color: #166534; }
 </style>

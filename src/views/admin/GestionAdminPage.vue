@@ -60,6 +60,15 @@
               <ion-icon slot="end" :icon="chevronForwardOutline" color="medium" />
             </ion-item>
 
+            <ion-item button @click="router.push('/admin/auditoria')">
+              <ion-icon slot="start" :icon="documentTextOutline" color="success" />
+              <ion-label>
+                <h2>Auditoría del Sistema</h2>
+                <p>Registro de acciones y cambios realizados</p>
+              </ion-label>
+              <ion-icon slot="end" :icon="chevronForwardOutline" color="medium" />
+            </ion-item>
+
           </ion-list>
 
           <!-- Inventario y reportes -->
@@ -122,7 +131,7 @@ import {
 import {
   shieldCheckmarkOutline, businessOutline, pawOutline,
   barChartOutline, informationCircleOutline, peopleOutline,
-  listOutline, medkitOutline, chevronForwardOutline
+  listOutline, medkitOutline, chevronForwardOutline, documentTextOutline
 } from 'ionicons/icons';
 
 import AppHeader from '@/components/AppHeader.vue';

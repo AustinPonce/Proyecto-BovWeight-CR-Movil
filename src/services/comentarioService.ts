@@ -7,9 +7,16 @@ export interface ComentarioAPI {
   fecha: string;
   cedula_veterinario: string;
   veterinario?: string;
+  animal?: { arete: string; nombre?: string };
 }
 
 export const comentarioService = {
+  // GET /api/comentarios  → todos los comentarios de animales visibles
+  async getComentariosGlobales() {
+    const res = await api.get('/comentarios');
+    return res.data as { data: ComentarioAPI[] };
+  },
+
   // GET /api/animales/{arete}/comentarios
   async getComentarios(arete: string) {
     const res = await api.get(`/animales/${arete}/comentarios`);

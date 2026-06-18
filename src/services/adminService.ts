@@ -27,12 +27,12 @@ export const adminService = {
     return res.data as { mensaje: string; usuario: UsuarioAPI };
   },
 
-  async actualizarUsuario(id: number, datos: Partial<{
+  async actualizarUsuario(cedula: string, datos: Partial<{
     nombre: string;
     correo: string;
     id_tipo_usuario: number;
   }>) {
-    const res = await api.put(`/usuarios/${id}`, datos);
+    const res = await api.put(`/usuarios/${cedula}`, datos);
     return res.data;
   },
 

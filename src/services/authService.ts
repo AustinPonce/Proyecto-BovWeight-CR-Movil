@@ -37,4 +37,25 @@ export const authService = {
     const res = await api.get('/usuario');
     return res.data;
   },
+
+  // POST /api/reset-password  →  restablece contraseña con token del correo
+  async resetPassword(datos: {
+    email: string;
+    token: string;
+    password: string;
+    password_confirmation: string;
+  }) {
+    const res = await api.post('/reset-password', datos);
+    return res.data as { message: string };
+  },
+
+  // PUT /api/usuario/cambiar-contrasena  →  cambia contraseña del usuario autenticado
+  async cambiarContrasena(contrasena_actual: string, contrasena_nueva: string, contrasena_nueva_confirmation: string) {
+    const res = await api.put('/usuario/cambiar-contrasena', {
+      contrasena_actual,
+      contrasena_nueva,
+      contrasena_nueva_confirmation,
+    });
+    return res.data as { message: string };
+  },
 };

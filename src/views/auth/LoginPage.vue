@@ -29,7 +29,7 @@
                     :value="formulario.contrasena"
                     :type="mostrarContrasena ? 'text' : 'password'"
                     placeholder="••••••••"
-                    @ionInput="formulario.contrasena = ($event.target as HTMLInputElement).value"
+                    @ionInput="formulario.contrasena = `${($event as CustomEvent).detail.value ?? ''}`"
                   />
                 </ion-item>
                 <button type="button" class="eye-btn" @click="mostrarContrasena = !mostrarContrasena">

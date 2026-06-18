@@ -52,7 +52,7 @@
                     :value="formulario.contrasena"
                     :type="mostrarContrasena ? 'text' : 'password'"
                     placeholder="Mínimo 8 caracteres"
-                    @ionInput="formulario.contrasena = ($event.target as HTMLInputElement).value"
+                    @ionInput="formulario.contrasena = `${($event as CustomEvent).detail.value ?? ''}`"
                   />
                 </ion-item>
                 <button type="button" class="eye-btn" @click="mostrarContrasena = !mostrarContrasena">
@@ -90,7 +90,7 @@
                     :value="formulario.contrasena_confirmation"
                     :type="mostrarConfirmacion ? 'text' : 'password'"
                     placeholder="Repite la contraseña"
-                    @ionInput="formulario.contrasena_confirmation = ($event.target as HTMLInputElement).value"
+                    @ionInput="formulario.contrasena_confirmation = `${($event as CustomEvent).detail.value ?? ''}`"
                   />
                 </ion-item>
                 <button type="button" class="eye-btn" @click="mostrarConfirmacion = !mostrarConfirmacion">

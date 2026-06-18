@@ -50,6 +50,16 @@
           </div>
         </BaseCard>
 
+        <!-- Botón asignar veterinario (solo Ganadero) -->
+        <div v-if="!isVeterinario && fincas.length > 0" class="asignar-vet-btn" @click="router.push('/veterinario/asignar')">
+          <ion-icon :icon="medkitOutline" class="vet-icon" />
+          <div>
+            <p class="vet-titulo">Asignar Veterinario</p>
+            <p class="vet-sub">Gestionar veterinarios en tus fincas</p>
+          </div>
+          <ion-icon :icon="chevronForwardOutline" class="arrow-icon" />
+        </div>
+
         <!-- Listado -->
         <ion-list v-if="fincas.length > 0">
           <ion-item
@@ -93,7 +103,7 @@ import {
   IonLabel, IonAvatar, IonBadge, IonSpinner,
   IonFab, IonFabButton, IonButton, useIonRouter
 } from '@ionic/vue';
-import { businessOutline, addOutline } from 'ionicons/icons';
+import { businessOutline, addOutline, medkitOutline, chevronForwardOutline } from 'ionicons/icons';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNav from '@/components/BottomNav.vue';
@@ -198,4 +208,15 @@ onMounted(async () => {
   align-items: center; justify-content: center;
   font-size: 22px; color: #006d37;
 }
+
+.asignar-vet-btn {
+  display: flex; align-items: center; gap: 12px;
+  background: #f0fdf4; border: 1px solid #86efac;
+  border-radius: 12px; padding: 12px 14px;
+  margin-bottom: 12px; cursor: pointer;
+}
+.vet-icon { font-size: 28px; color: #006d37; flex-shrink: 0; }
+.vet-titulo { margin: 0 0 2px; font-size: 14px; font-weight: 600; color: #166534; }
+.vet-sub { margin: 0; font-size: 12px; color: #6b7280; }
+.arrow-icon { margin-left: auto; font-size: 20px; color: #006d37; flex-shrink: 0; }
 </style>
