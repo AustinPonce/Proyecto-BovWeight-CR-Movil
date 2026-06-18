@@ -239,17 +239,17 @@ const tomarFoto = async (fuente: 'camera' | 'gallery') => {
     let webPath: string | undefined;
     if (fuente === 'camera') {
       const result = await Camera.takePhoto({ quality: 85 });
-      webPath = result.webPath ?? (result.thumbnail ? `data:image/jpeg;base64,${result.thumbnail}` : undefined);
+      webPath = result.webPath;
     } else {
       const result = await Camera.chooseFromGallery({});
       const first = result.results[0];
       if (!first) return;
-      webPath = first.webPath ?? (first.thumbnail ? `data:image/jpeg;base64,${first.thumbnail}` : undefined);
+      webPath = first.webPath;
     }
     if (!webPath) { error.value = 'No se pudo obtener la imagen.'; return; }
     fotoDataUrl.value = webPath;
-    const fetchRes = await fetch(webPath);
-    fotoBlob.value = await fetchRes.blob();
+    const buf = await (await fetch(webPath)).arrayBuffer();
+    fotoBlob.value = new Blob([buf], { type: 'image/jpeg' });
   } catch (e: any) {
     if (e?.message?.includes('cancelled') || e?.message?.includes('User cancelled')) return;
     error.value = 'No se pudo acceder a la cámara. Verifica los permisos.';

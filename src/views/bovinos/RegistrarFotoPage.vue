@@ -226,9 +226,8 @@ const tomarFoto = async (fuente: 'camera' | 'gallery') => {
     if (!webPath) { error.value = 'No se pudo obtener la imagen.'; return; }
 
     fotoDataUrl.value = webPath;
-    // fetch sobre capacitor:// funciona dentro del WebView nativo de Capacitor
-    const response = await fetch(webPath);
-    fotoBlob.value = await response.blob();
+    const buf = await (await fetch(webPath)).arrayBuffer();
+    fotoBlob.value = new Blob([buf], { type: 'image/jpeg' });
   } catch (e: any) {
     if (e?.message?.includes('cancelled') || e?.message?.includes('User cancelled')) return;
     error.value = 'No se pudo acceder a la cámara. Verifica los permisos.';
