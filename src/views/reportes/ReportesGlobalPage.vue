@@ -93,6 +93,7 @@ import { documentOutline, gridOutline } from 'ionicons/icons';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { guardarPDF, guardarExcel } from '@/utils/exportHelpers';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNav from '@/components/BottomNav.vue';
@@ -148,7 +149,7 @@ const exportarPDF = async (tipo: string) => {
       });
     }
 
-    doc.save(`${tipo}_global_${fechaHoy()}.pdf`);
+    await guardarPDF(doc, `${tipo}_global_${fechaHoy()}.pdf`);
   } finally { exportando.value = ''; }
 };
 
@@ -175,7 +176,7 @@ const exportarExcel = async (tipo: string) => {
     const ws = XLSX.utils.json_to_sheet(filas);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, sheetName);
-    XLSX.writeFile(wb, `${tipo}_global_${fechaHoy()}.xlsx`);
+    await guardarExcel(wb, `${tipo}_global_${fechaHoy()}.xlsx`);
   } finally { exportando.value = ''; }
 };
 </script>

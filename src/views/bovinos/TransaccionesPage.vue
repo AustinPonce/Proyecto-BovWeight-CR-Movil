@@ -91,6 +91,7 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { guardarPDF, guardarExcel } from '@/utils/exportHelpers';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNav from '@/components/BottomNav.vue';
@@ -138,7 +139,7 @@ const exportarPDF = async () => {
       headStyles: { fillColor: [0, 109, 55] },
       alternateRowStyles: { fillColor: [240, 253, 244] },
     });
-    doc.save(`transacciones_${fechaHoy()}.pdf`);
+    await guardarPDF(doc, `transacciones_${fechaHoy()}.pdf`);
   } finally { exportando.value = ''; }
 };
 
@@ -155,7 +156,7 @@ const exportarCSV = async () => {
     const ws = XLSX.utils.json_to_sheet(filas);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Transacciones');
-    XLSX.writeFile(wb, `transacciones_${fechaHoy()}.xlsx`);
+    await guardarExcel(wb, `transacciones_${fechaHoy()}.xlsx`);
   } finally { exportando.value = ''; }
 };
 

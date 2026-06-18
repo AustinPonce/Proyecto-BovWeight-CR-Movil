@@ -120,6 +120,7 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { guardarPDF, guardarExcel } from '@/utils/exportHelpers';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNav from '@/components/BottomNav.vue';
@@ -190,7 +191,7 @@ const exportarPDF = async () => {
       alternateRowStyles: { fillColor: [240, 253, 244] },
     });
 
-    doc.save(`bovinos_${fechaHoy()}.pdf`);
+    await guardarPDF(doc, `bovinos_${fechaHoy()}.pdf`);
   } finally {
     exportando.value = '';
   }
@@ -237,7 +238,7 @@ const exportarExcel = async () => {
     ws['!cols'] = [14, 18, 14, 10, 12, 18, 16].map(w => ({ wch: w }));
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Bovinos');
-    XLSX.writeFile(wb, `bovinos_${fechaHoy()}.xlsx`);
+    await guardarExcel(wb, `bovinos_${fechaHoy()}.xlsx`);
   } finally {
     exportando.value = '';
   }

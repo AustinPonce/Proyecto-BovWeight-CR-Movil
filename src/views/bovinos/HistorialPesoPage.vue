@@ -252,6 +252,7 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { guardarPDF, guardarExcel } from '@/utils/exportHelpers';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BaseCard from '@/components/BaseCard.vue';
@@ -545,7 +546,7 @@ const exportarPDF = async () => {
       alternateRowStyles: { fillColor: [240, 253, 244] },
       styles: { fontSize: 8 },
     });
-    doc.save(`Historial_${arete}_${fechaHoy()}.pdf`);
+    await guardarPDF(doc, `Historial_${arete}_${fechaHoy()}.pdf`);
   } finally { exportando.value = ''; }
 };
 
@@ -566,7 +567,7 @@ const exportarExcel = async () => {
     const ws = XLSX.utils.json_to_sheet(datos);
     ws['!cols'] = [6, 14, 12, 14, 12, 14, 12].map(w => ({ wch: w }));
     XLSX.utils.book_append_sheet(wb, ws, `Arete ${arete}`);
-    XLSX.writeFile(wb, `Historial_${arete}_${fechaHoy()}.xlsx`);
+    await guardarExcel(wb, `Historial_${arete}_${fechaHoy()}.xlsx`);
   } finally { exportando.value = ''; }
 };
 
