@@ -203,6 +203,9 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { Share } from '@capacitor/share';
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Capacitor } from '@capacitor/core';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNav from '@/components/BottomNav.vue';
@@ -236,6 +239,29 @@ onMounted(async () => {
   } catch { /* sin datos */ }
   finally { cargando.value = false; }
 });
+
+// ─────────────────── DESCARGA HELPERS ───────────────────
+const guardarPDF = async (doc: jsPDF, filename: string) => {
+  if (Capacitor.isNativePlatform()) {
+    const base64 = doc.output('datauristring').split(',')[1];
+    await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Cache });
+    const { uri } = await Filesystem.getUri({ path: filename, directory: Directory.Cache });
+    await Share.share({ title: filename, url: uri, dialogTitle: 'Guardar PDF' });
+  } else {
+    doc.save(filename);
+  }
+};
+
+const guardarExcel = async (wb: XLSX.WorkBook, filename: string) => {
+  if (Capacitor.isNativePlatform()) {
+    const base64 = XLSX.write(wb, { bookType: 'xlsx', type: 'base64' });
+    await Filesystem.writeFile({ path: filename, data: base64, directory: Directory.Cache });
+    const { uri } = await Filesystem.getUri({ path: filename, directory: Directory.Cache });
+    await Share.share({ title: filename, url: uri, dialogTitle: 'Guardar Excel' });
+  } else {
+    XLSX.writeFile(wb, filename);
+  }
+};
 
 // ─────────────────── PDF HELPERS ───────────────────
 const crearEncabezadoPDF = (doc: jsPDF, titulo: string) => {
@@ -276,7 +302,7 @@ const exportarBovinosPDF = async () => {
       alternateRowStyles: { fillColor: [240, 253, 244] },
       styles: { fontSize: 9 },
     });
-    doc.save(`bovinos_${new Date().toISOString().slice(0, 10)}.pdf`);
+    await guardarPDF(doc, `bovinos_${new Date().toISOString().slice(0, 10)}.pdf`);
   } finally { exportando.value = ''; }
 };
 
@@ -297,7 +323,7 @@ const exportarBovinosExcel = async () => {
     const ws = XLSX.utils.json_to_sheet(datos);
     ws['!cols'] = [14, 16, 14, 10, 12, 18, 16, 18].map(w => ({ wch: w }));
     XLSX.utils.book_append_sheet(wb, ws, 'Bovinos');
-    XLSX.writeFile(wb, `bovinos_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    await guardarExcel(wb, `bovinos_${new Date().toISOString().slice(0, 10)}.xlsx`);
   } finally { exportando.value = ''; }
 };
 
@@ -321,7 +347,7 @@ const exportarPesajesPDF = async () => {
       alternateRowStyles: { fillColor: [239, 246, 255] },
       styles: { fontSize: 9 },
     });
-    doc.save(`pesajes_${new Date().toISOString().slice(0, 10)}.pdf`);
+    await guardarPDF(doc, `pesajes_${new Date().toISOString().slice(0, 10)}.pdf`);
   } finally { exportando.value = ''; }
 };
 
@@ -339,7 +365,7 @@ const exportarPesajesExcel = async () => {
     const ws = XLSX.utils.json_to_sheet(datos);
     ws['!cols'] = [14, 16, 12, 14, 12].map(w => ({ wch: w }));
     XLSX.utils.book_append_sheet(wb, ws, 'Pesajes');
-    XLSX.writeFile(wb, `pesajes_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    await guardarExcel(wb, `pesajes_${new Date().toISOString().slice(0, 10)}.xlsx`);
   } finally { exportando.value = ''; }
 };
 
@@ -362,7 +388,7 @@ const exportarFincasPDF = async () => {
       alternateRowStyles: { fillColor: [255, 251, 235] },
       styles: { fontSize: 9 },
     });
-    doc.save(`fincas_${new Date().toISOString().slice(0, 10)}.pdf`);
+    await guardarPDF(doc, `fincas_${new Date().toISOString().slice(0, 10)}.pdf`);
   } finally { exportando.value = ''; }
 };
 
@@ -379,7 +405,7 @@ const exportarFincasExcel = async () => {
     const ws = XLSX.utils.json_to_sheet(datos);
     ws['!cols'] = [8, 20, 24, 20].map(w => ({ wch: w }));
     XLSX.utils.book_append_sheet(wb, ws, 'Fincas');
-    XLSX.writeFile(wb, `fincas_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    await guardarExcel(wb, `fincas_${new Date().toISOString().slice(0, 10)}.xlsx`);
   } finally { exportando.value = ''; }
 };
 </script>
