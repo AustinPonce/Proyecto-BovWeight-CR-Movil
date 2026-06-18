@@ -40,9 +40,7 @@ export const pesajeService = {
     formData.append('imagen', imagenBlob, filename);
     if (tipoAnimal) formData.append('tipo_animal', tipoAnimal);
 
-    const res = await api.post('/pesajes', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const res = await api.post('/pesajes', formData);
     return res.data as { data: PesajeAPI };
   },
 

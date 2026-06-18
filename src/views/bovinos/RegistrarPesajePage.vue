@@ -290,13 +290,22 @@ const calcular = async () => {
       const res = await pesajeService.crearPesajeFoto(areteSeleccionado.value, fotoBlob.value, 'bovino.jpg', tipoAnimal.value);
       resultado.value = { id: res.data.id, arete: res.data.arete, peso: res.data.peso };
     } catch (e: any) {
-      const msg: string = e.response?.data?.message ?? '';
-      const isNoBovino = e.response?.status === 422 && (
+      const status: number = e.response?.status ?? 0;
+      const data = e.response?.data ?? {};
+      const msg: string = data.message ?? data.error ?? data.detail ?? '';
+      const errors = data.errors;
+      const isNoBovino = status === 422 && (
         msg.toLowerCase().includes('bovino') || msg.toLowerCase().includes('detect')
       );
-      error.value = isNoBovino
-        ? 'La foto no contiene un bovino detectado. Tomá una foto lateral con el cuerpo completo.'
-        : msg || 'No se pudo procesar la foto.';
+      if (isNoBovino) {
+        error.value = 'La foto no contiene un bovino detectado. Tomá una foto lateral con el cuerpo completo.';
+      } else if (errors) {
+        error.value = (Object.values(errors) as string[][]).flat().join(' ');
+      } else if (msg) {
+        error.value = msg;
+      } else {
+        error.value = `Error ${status || 'de red'}: No se pudo procesar la foto. Verifica tu conexión e intenta de nuevo.`;
+      }
     } finally {
       loading.value = false;
     }
