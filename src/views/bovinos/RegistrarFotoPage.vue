@@ -157,6 +157,8 @@ import {
   informationCircleOutline, cloudUploadOutline, checkmarkCircleOutline
 } from 'ionicons/icons';
 import { Camera } from '@capacitor/camera';
+import type { MediaResult } from '@capacitor/camera';
+import { Filesystem } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 
 import AppHeader from '@/components/AppHeader.vue';
@@ -187,6 +189,13 @@ const formulario = reactive({
   id_finca: 0,
 });
 
+const base64ToBlob = (base64: string, mimeType = 'image/jpeg'): Blob => {
+  const byteChars = atob(base64);
+  const bytes = new Uint8Array(byteChars.length);
+  for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+  return new Blob([bytes], { type: mimeType });
+};
+
 const tomarFoto = async (fuente: 'camera' | 'gallery') => {
   error.value = '';
 
@@ -210,28 +219,25 @@ const tomarFoto = async (fuente: 'camera' | 'gallery') => {
   }
 
   try {
-    let webPath: string | undefined;
+    let media: MediaResult | undefined;
 
     if (fuente === 'camera') {
-      const result = await Camera.takePhoto({ quality: 85 });
-      webPath = result.webPath;
-      if (!webPath && result.thumbnail) {
-        webPath = `data:image/jpeg;base64,${result.thumbnail}`;
-      }
+      media = await Camera.takePhoto({ quality: 85 });
     } else {
-      const result = await Camera.chooseFromGallery({});
-      const first = result.results[0];
-      if (!first) return;
-      webPath = first.webPath;
-      if (!webPath && first.thumbnail) {
-        webPath = `data:image/jpeg;base64,${first.thumbnail}`;
-      }
+      const res = await Camera.chooseFromGallery({});
+      media = res.results[0];
     }
 
-    if (!webPath) { error.value = 'No se pudo obtener la imagen.'; return; }
-    fotoDataUrl.value = webPath;
-    const fetchRes = await fetch(webPath);
-    fotoBlob.value = await fetchRes.blob();
+    if (!media) return;
+
+    // webPath funciona en <img> en Android; uri es la ruta nativa para leer bytes
+    fotoDataUrl.value = media.webPath ?? '';
+
+    if (!media.uri) { error.value = 'No se pudo obtener la ruta del archivo.'; return; }
+    const fileRead = await Filesystem.readFile({ path: media.uri });
+    const base64 = typeof fileRead.data === 'string' ? fileRead.data : '';
+    if (!base64) { error.value = 'No se pudo leer la foto. Intenta de nuevo.'; return; }
+    fotoBlob.value = base64ToBlob(base64);
   } catch (e: any) {
     if (e?.message?.includes('cancelled') || e?.message?.includes('User cancelled')) return;
     error.value = 'No se pudo acceder a la cámara. Verifica los permisos.';
