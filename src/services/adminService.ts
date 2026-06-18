@@ -36,6 +36,11 @@ export const adminService = {
     return res.data;
   },
 
+  async eliminarUsuario(cedula: string) {
+    const res = await api.delete(`/usuarios/${cedula}`);
+    return res.data as { mensaje: string };
+  },
+
   async toggleActivo(cedula: string) {
     const res = await api.patch(`/usuarios/${cedula}/toggle-activo`);
     return res.data;

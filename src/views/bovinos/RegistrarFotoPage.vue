@@ -98,6 +98,7 @@
               Elegir de Galería
             </ion-button>
           </div>
+
         </BaseCard>
 
         <!-- Aviso -->
@@ -156,6 +157,7 @@ import {
   informationCircleOutline, cloudUploadOutline, checkmarkCircleOutline
 } from 'ionicons/icons';
 import { Camera } from '@capacitor/camera';
+import { Capacitor } from '@capacitor/core';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNav from '@/components/BottomNav.vue';
@@ -187,6 +189,26 @@ const formulario = reactive({
 
 const tomarFoto = async (fuente: 'camera' | 'gallery') => {
   error.value = '';
+
+  // Fallback para navegador web (no nativo)
+  if (!Capacitor.isNativePlatform()) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    if (fuente === 'camera') input.setAttribute('capture', 'environment');
+    document.body.appendChild(input);
+    input.onchange = () => {
+      const file = input.files?.[0];
+      if (file) {
+        fotoBlob.value = file;
+        fotoDataUrl.value = URL.createObjectURL(file);
+      }
+      document.body.removeChild(input);
+    };
+    input.click();
+    return;
+  }
+
   try {
     let webPath: string | undefined;
 
