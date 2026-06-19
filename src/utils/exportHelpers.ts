@@ -4,6 +4,25 @@ import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
 
+export const cargarImagenBase64 = async (url: string): Promise<string | null> => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(url, { headers });
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise<string | null>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+};
+
 export const guardarPDF = async (doc: jsPDF, filename: string): Promise<void> => {
   if (Capacitor.isNativePlatform()) {
     const base64 = doc.output('datauristring').split(',')[1];

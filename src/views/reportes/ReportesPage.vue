@@ -206,6 +206,7 @@ import * as XLSX from 'xlsx';
 import { Share } from '@capacitor/share';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Capacitor } from '@capacitor/core';
+import { cargarImagenBase64 } from '@/utils/exportHelpers';
 
 import AppHeader from '@/components/AppHeader.vue';
 import BottomNav from '@/components/BottomNav.vue';
@@ -347,6 +348,43 @@ const exportarPesajesPDF = async () => {
       alternateRowStyles: { fillColor: [239, 246, 255] },
       styles: { fontSize: 9 },
     });
+
+    const pesajesFoto = pesajes.value.filter(p => p.imagen_url && p.tipo_pesaje_id === 2);
+    if (pesajesFoto.length > 0) {
+      doc.addPage();
+      doc.setFillColor(29, 78, 216);
+      doc.rect(0, 0, 210, 16, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Fotografías de Pesajes IA', 14, 11);
+      doc.setTextColor(0, 0, 0);
+
+      const imgW = 88, imgH = 66;
+      let x = 11, y = 22;
+
+      for (const p of pesajesFoto) {
+        const b64 = await cargarImagenBase64(p.imagen_url!);
+        if (!b64) continue;
+
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`Arete: ${p.arete}  —  ${formatFecha(p.fecha)}  —  ${p.peso.toFixed(1)} kg`, x, y);
+        doc.addImage(b64, 'JPEG', x, y + 2, imgW, imgH);
+
+        x += imgW + 12;
+        if (x + imgW > 210) {
+          x = 11;
+          y += imgH + 12;
+        }
+        if (y + imgH + 12 > 280) {
+          doc.addPage();
+          y = 14;
+          x = 11;
+        }
+      }
+    }
+
     await guardarPDF(doc, `pesajes_${new Date().toISOString().slice(0, 10)}.pdf`);
   } finally { exportando.value = ''; }
 };
