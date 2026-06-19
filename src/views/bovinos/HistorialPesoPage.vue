@@ -547,7 +547,7 @@ const exportarPDF = async () => {
       styles: { fontSize: 8 },
     });
 
-    const pesajesFoto = historial.value.filter(p => p.imagen_url && p.tipo_pesaje_id === 2);
+    const pesajesFoto = historial.value.filter(p => p.imagen_url);
     if (pesajesFoto.length > 0) {
       doc.addPage();
       doc.setFillColor(0, 109, 55);
