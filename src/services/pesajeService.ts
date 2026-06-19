@@ -1,5 +1,7 @@
 import api from './api';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api';
+
 export interface PesajeAPI {
   id: number;
   arete: string;
@@ -40,10 +42,23 @@ export const pesajeService = {
     formData.append('imagen', imagenBlob, filename);
     if (tipoAnimal) formData.append('tipo_animal', tipoAnimal);
 
-    const res = await api.post('/pesajes', formData, {
-      headers: { 'Content-Type': undefined },
+    const token = localStorage.getItem('authToken');
+    const res = await fetch(`${API_BASE}/pesajes`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+      },
+      body: formData,
     });
-    return res.data as { data: PesajeAPI };
+
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err: any = new Error(json?.message || 'Error');
+      err.response = { status: res.status, data: json };
+      throw err;
+    }
+    return json as { data: PesajeAPI };
   },
 
   // PUT /api/pesajes/{id}  →  corregir peso manualmente
