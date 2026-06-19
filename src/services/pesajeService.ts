@@ -43,14 +43,21 @@ export const pesajeService = {
     if (tipoAnimal) formData.append('tipo_animal', tipoAnimal);
 
     const token = localStorage.getItem('authToken');
-    const res = await fetch(`${API_BASE}/pesajes`, {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-      },
-      body: formData,
-    });
+    let res: Response;
+    try {
+      res = await fetch(`${API_BASE}/pesajes`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        },
+        body: formData,
+      });
+    } catch (fetchErr: any) {
+      const err: any = new Error(fetchErr.message || 'Fetch failed');
+      err.response = { status: 0, data: { message: `[${fetchErr.name}] ${fetchErr.message} | blob:${imagenBlob.size}b | url:${API_BASE}` } };
+      throw err;
+    }
 
     const json = await res.json().catch(() => ({}));
     if (!res.ok) {

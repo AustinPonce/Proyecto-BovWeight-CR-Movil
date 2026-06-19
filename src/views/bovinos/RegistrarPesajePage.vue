@@ -233,12 +233,29 @@ const pesoMostrado = computed(() =>
   pesoCorregidoFinal.value !== null ? pesoCorregidoFinal.value : (resultado.value?.peso ?? 0)
 );
 
+const comprimirImagen = (blob: Blob, maxWidth = 1200, quality = 0.8): Promise<Blob> =>
+  new Promise((resolve) => {
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const scale = Math.min(1, maxWidth / img.naturalWidth);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(b => resolve(b ?? blob), 'image/jpeg', quality);
+    };
+    img.onerror = () => resolve(blob);
+    img.src = url;
+  });
+
 const tomarFoto = async (fuente: 'camera' | 'gallery') => {
   error.value = '';
   try {
     let webPath: string | undefined;
     if (fuente === 'camera') {
-      const result = await Camera.takePhoto({ quality: 85 });
+      const result = await Camera.takePhoto({ quality: 70 });
       webPath = result.webPath;
     } else {
       const result = await Camera.chooseFromGallery({});
@@ -249,7 +266,8 @@ const tomarFoto = async (fuente: 'camera' | 'gallery') => {
     if (!webPath) { error.value = 'No se pudo obtener la imagen.'; return; }
     fotoDataUrl.value = webPath;
     const buf = await (await fetch(webPath)).arrayBuffer();
-    fotoBlob.value = new Blob([buf], { type: 'image/jpeg' });
+    const original = new Blob([buf], { type: 'image/jpeg' });
+    fotoBlob.value = await comprimirImagen(original, 1200, 0.8);
   } catch (e: any) {
     if (e?.message?.includes('cancelled') || e?.message?.includes('User cancelled')) return;
     error.value = 'No se pudo acceder a la cámara. Verifica los permisos.';
