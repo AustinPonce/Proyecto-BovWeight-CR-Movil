@@ -548,39 +548,58 @@ const exportarPDF = async () => {
     });
 
     const pesajesFoto = historial.value.filter(p => p.imagen_url);
-    if (pesajesFoto.length > 0) {
-      doc.addPage();
-      doc.setFillColor(0, 109, 55);
-      doc.rect(0, 0, 210, 16, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(11);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Fotografías de Pesajes IA', 14, 11);
-      doc.setTextColor(0, 0, 0);
+    doc.addPage();
+    doc.setFillColor(0, 109, 55);
+    doc.rect(0, 0, 210, 16, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Fotografías de Pesajes IA', 14, 11);
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Pesajes con foto encontrados: ${pesajesFoto.length}`, 14, 22);
+    doc.setTextColor(0, 0, 0);
 
+    if (pesajesFoto.length > 0) {
       const imgW = 88, imgH = 66;
-      let x = 11, y = 22;
+      let x = 11, y = 30;
+      let cargadas = 0;
 
       for (const p of pesajesFoto) {
         const b64 = await cargarImagenBase64(p.imagen_url!);
-        if (!b64) continue;
 
         doc.setFontSize(7);
         doc.setFont('helvetica', 'bold');
         doc.text(`${formatFecha(p.fecha)}  —  ${pesoBruto(p).toFixed(1)} kg`, x, y);
-        doc.addImage(b64, 'JPEG', x, y + 2, imgW, imgH);
+
+        if (b64) {
+          doc.addImage(b64, 'JPEG', x, y + 2, imgW, imgH);
+          cargadas++;
+        } else {
+          doc.setDrawColor(200, 200, 200);
+          doc.rect(x, y + 2, imgW, imgH);
+          doc.setFontSize(7);
+          doc.setTextColor(150, 150, 150);
+          doc.text('No se pudo cargar la imagen', x + 20, y + imgH / 2 + 2);
+          doc.setTextColor(0, 0, 0);
+          doc.text(`URL: ${p.imagen_url!.slice(0, 60)}`, x, y + imgH + 6);
+        }
 
         x += imgW + 12;
         if (x + imgW > 210) {
           x = 11;
-          y += imgH + 12;
+          y += imgH + 16;
         }
-        if (y + imgH + 12 > 280) {
+        if (y + imgH + 16 > 280) {
           doc.addPage();
           y = 14;
           x = 11;
         }
       }
+
+      doc.setFontSize(7);
+      doc.setTextColor(80, 80, 80);
     }
 
     await guardarPDF(doc, `Historial_${arete}_${fechaHoy()}.pdf`);
